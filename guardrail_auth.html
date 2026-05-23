@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guardrail — Sign In</title>
+
+  <!-- ═══ FONTS ═══════════════════════════════════════════ -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- ═══ TAILWIND CDN ════════════════════════════════════ -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['Cormorant Garamond', 'Georgia', 'serif'],
+            sans:  ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            base:        '#121418',
+            surface:     '#1A1D24',
+            raised:      '#20242D',
+            chalk:       '#F4F4F2',
+            'chalk-dim': '#C8C8C5',
+            stone:       '#9A9A96',
+            'stone-dim': '#666662',
+            'stone-deep':'#3D4049',
+            sage:        '#8FA89B',
+            'sage-dim':  '#6B8579',
+            'sage-glow': '#A8C2B5',
+            amber:       '#C9A96E',
+            'amber-dim': '#A68750',
+            line:        '#2A2E38',
+            'line-dim':  '#1F2229',
+          },
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* ─────────────────────────────────────────────────────
+       BASE RESET & BODY
+    ───────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background-color: #121418;
+      color: #F4F4F2;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow: hidden; /* prevent outer scroll; inner panels scroll if needed */
+    }
+
+    /* ─────────────────────────────────────────────────────
+       SPLIT-SCREEN WRAPPER
+       Left col: form  |  Right col: editorial brand panel
+       Mobile: only the left col is shown (right is hidden).
+    ───────────────────────────────────────────────────── */
+    .auth-wrapper {
+      display: grid;
+      grid-template-columns: 1fr;   /* mobile: single column */
+      height: 100vh;
+      width: 100%;
+    }
+    @media (min-width: 900px) {
+      .auth-wrapper {
+        /* Desktop: left ≈ 46%, right ≈ 54% */
+        grid-template-columns: 46fr 54fr;
+      }
+    }
+
+    /* ─────────────────────────────────────────────────────
+       LEFT PANEL — Form side
+    ───────────────────────────────────────────────────── */
+    .form-panel {
+      background: #121418;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 28px;
+      overflow-y: auto;    /* scroll on very short viewports */
+      position: relative;
+      z-index: 10;
+    }
+
+    /* Subtle grain on form panel */
+    .form-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.028;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+      background-size: 140px 140px;
+    }
+
+    /* Vertical nav area at top of form panel */
+    .form-nav {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      padding: 22px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 2;
+    }
+
+    /* ─────────────────────────────────────────────────────
+       RIGHT PANEL — Editorial / Brand side
+       Hidden on mobile, visible on desktop (min-width:900px)
+    ───────────────────────────────────────────────────── */
+    .brand-panel {
+      display: none;                /* hidden on mobile */
+      background: #0D0F12;          /* slightly deeper than base */
+      position: relative;
+      overflow: hidden;
+    }
+    @media (min-width: 900px) {
+      .brand-panel { display: flex; flex-direction: column; justify-content: flex-end; }
+    }
+
+    /* Deep grain on brand panel — denser than form side */
+    .brand-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.048;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 160px 160px;
+    }
+
+    /* Sage ambient radial — the signature glow of the brand panel */
+    .brand-panel::after {
+      content: '';
+      position: absolute;
+      top: -10%;
+      right: -15%;
+      width: 650px;
+      height: 650px;
+      border-radius: 50%;
+      background: radial-gradient(
+        circle,
+        rgba(143,168,155,0.10) 0%,
+        rgba(143,168,155,0.03) 35%,
+        transparent 68%
+      );
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Secondary ambient — lower-left warm pocket */
+    .brand-glow-2 {
+      position: absolute;
+      bottom: 15%;
+      left: -8%;
+      width: 420px;
+      height: 420px;
+      border-radius: 50%;
+      background: radial-gradient(
+        circle,
+        rgba(201,169,110,0.05) 0%,
+        transparent 65%
+      );
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Thin vertical divider between left and right panels */
+    .panel-divider {
+      position: absolute;
+      top: 0; bottom: 0;
+      left: 0;
+      width: 1px;
+      background: linear-gradient(
+        180deg,
+        transparent 0%,
+        #2A2E38 20%,
+        #2A2E38 80%,
+        transparent 100%
+      );
+      z-index: 20;
+    }
+
+    /* ─────────────────────────────────────────────────────
+       FORM TOGGLE — fade transition
+       The two form states (sign-in, sign-up) each sit in a
+       wrapper div. JS adds/removes .state-hidden to them.
+       CSS transition handles the smooth opacity + translate.
+    ───────────────────────────────────────────────────── */
+    .auth-state {
+      width: 100%;
+      max-width: 380px;
+      transition: opacity 0.28s ease, transform 0.28s cubic-bezier(0.22,1,0.36,1);
+    }
+    /* Active state: fully visible */
+    .auth-state.state-active {
+      opacity: 1;
+      transform: none;
+      pointer-events: all;
+      position: relative;
+    }
+    /* Hidden state: invisible and pulled up slightly */
+    .auth-state.state-hidden {
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      position: absolute; /* take it out of flow while hidden */
+      top: 0; left: 50%;
+      transform: translateX(-50%) translateY(10px);
+    }
+
+    /* Outer container that holds both states, positioned relative */
+    .auth-stage {
+      position: relative;
+      width: 100%;
+      max-width: 380px;
+      /* Height is set dynamically to the taller state so the panel doesn't jump */
+    }
+
+    /* ─────────────────────────────────────────────────────
+       PREMIUM INPUTS
+    ───────────────────────────────────────────────────── */
+    .g-input {
+      width: 100%;
+      background: #20242D;
+      border: 1px solid #2A2E38;
+      border-radius: 3px;
+      color: #F4F4F2;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 13.5px;
+      font-weight: 400;
+      padding: 11px 13px;
+      outline: none;
+      transition: border-color 0.20s ease, box-shadow 0.20s ease;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .g-input::placeholder { color: #3D4049; }
+    .g-input:focus {
+      border-color: rgba(143,168,155,0.52);
+      box-shadow: 0 0 0 3px rgba(143,168,155,0.08);
+    }
+
+    /* Password wrapper — positions the show/hide toggle icon */
+    .pw-wrap { position: relative; }
+    .pw-wrap .g-input { padding-right: 40px; }
+    .pw-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #666662;
+      padding: 2px;
+      transition: color 0.18s ease;
+      line-height: 0;
+    }
+    .pw-toggle:hover { color: #9A9A96; }
+
+    /* Remove number spinners globally */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    input[type=number] { -moz-appearance: textfield; }
+
+    /* ─────────────────────────────────────────────────────
+       BUTTONS
+    ───────────────────────────────────────────────────── */
+    .btn-primary {
+      width: 100%;
+      background: #F4F4F2;
+      color: #121418;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 3px;
+      padding: 14px 24px;
+      cursor: pointer;
+      transition: background 0.22s ease, box-shadow 0.22s ease, transform 0.12s ease;
+    }
+    .btn-primary:hover {
+      background: #C8C8C5;
+      box-shadow: 0 4px 20px rgba(244,244,242,0.08);
+      transform: translateY(-1px);
+    }
+    .btn-primary:active { transform: none; }
+
+    /* OAuth / social ghost button */
+    .btn-ghost-full {
+      width: 100%;
+      background: transparent;
+      color: #9A9A96;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid #2A2E38;
+      border-radius: 3px;
+      padding: 11px 24px;
+      cursor: pointer;
+      transition: border-color 0.20s ease, color 0.20s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-ghost-full:hover { border-color: #9A9A96; color: #F4F4F2; }
+
+    /* ─────────────────────────────────────────────────────
+       MISC UI
+    ───────────────────────────────────────────────────── */
+    .section-label {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #666662;
+    }
+
+    /* Horizontal rule with "or" text */
+    .or-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .or-divider span.line {
+      flex: 1;
+      height: 1px;
+      background: #2A2E38;
+    }
+    .or-divider span.text {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 10.5px;
+      color: #666662;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    /* Inline text link style */
+    .text-link {
+      color: #8FA89B;
+      cursor: pointer;
+      text-decoration: none;
+      transition: color 0.18s ease;
+      font-weight: 500;
+    }
+    .text-link:hover { color: #A8C2B5; }
+
+    /* Amber link variant */
+    .text-link-amber {
+      color: #C9A96E;
+      cursor: pointer;
+      text-decoration: none;
+      transition: color 0.18s ease;
+      font-weight: 500;
+    }
+    .text-link-amber:hover { color: #D4B882; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar       { width: 3px; }
+    ::-webkit-scrollbar-track { background: #121418; }
+    ::-webkit-scrollbar-thumb { background: #2A2E38; border-radius: 2px; }
+
+    /* Focus-visible ring */
+    button:focus-visible { outline: 2px solid rgba(143,168,155,0.5); outline-offset: 2px; }
+    input:focus-visible  { outline: none; }
+
+    /* ─────────────────────────────────────────────────────
+       BRAND PANEL — editorial typography
+    ───────────────────────────────────────────────────── */
+
+    /* Decorative large background letter */
+    .brand-bg-letter {
+      position: absolute;
+      top: -2%;
+      left: -5%;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: clamp(280px, 30vw, 420px);
+      font-weight: 300;
+      color: rgba(143,168,155,0.028);
+      line-height: 1;
+      user-select: none;
+      pointer-events: none;
+      z-index: 0;
+      letter-spacing: -0.06em;
+    }
+
+    /* Thin horizontal rule in brand panel */
+    .brand-rule {
+      width: 40px;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(143,168,155,0.6), transparent);
+    }
+
+    /* Sage number accent in brand stats */
+    .stat-number {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: clamp(2.2rem, 3.5vw, 3rem);
+      font-weight: 300;
+      color: #8FA89B;
+      line-height: 1;
+    }
+
+    /* Subtle bottom gradient fade on brand panel */
+    .brand-bottom-fade {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 260px;
+      background: linear-gradient(to top, rgba(13,15,18,0.95) 0%, transparent 100%);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Pulsing live dot */
+    @keyframes livePulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(143,168,155,0.5); }
+      50%      { box-shadow: 0 0 0 5px rgba(143,168,155,0); }
+    }
+    .live-dot { animation: livePulse 2.4s ease-in-out infinite; }
+
+    /* ─────────────────────────────────────────────────────
+       SAGE GLOW ON BRAND QUOTE TEXT
+    ───────────────────────────────────────────────────── */
+    @keyframes sageBreathe {
+      0%,100% { text-shadow: 0 0 40px rgba(143,168,155,0.12), 0 0 80px rgba(143,168,155,0.04); }
+      50%      { text-shadow: 0 0 60px rgba(143,168,155,0.22), 0 0 120px rgba(143,168,155,0.08); }
+    }
+    .brand-quote-glow { animation: sageBreathe 5s ease-in-out infinite; }
+
+    /* ─────────────────────────────────────────────────────
+       ERROR STATE on inputs
+    ───────────────────────────────────────────────────── */
+    .g-input.input-error {
+      border-color: rgba(176,112,112,0.55) !important;
+      box-shadow: 0 0 0 3px rgba(176,112,112,0.07) !important;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ════════════════════════════════════════════════════
+       SPLIT-SCREEN WRAPPER
+  ════════════════════════════════════════════════════ -->
+  <div class="auth-wrapper">
+
+
+    <!-- ╔══════════════════════════════════════════════════╗
+         ║  LEFT PANEL — Auth Form                         ║
+         ╚══════════════════════════════════════════════════╝ -->
+    <div class="form-panel">
+
+      <!-- ── Top navigation bar inside form panel ───────── -->
+      <div class="form-nav">
+
+        <!-- Wordmark -->
+        <a href="#" class="flex items-center gap-2">
+          <span
+            class="block w-1.5 h-1.5 rounded-full bg-sage live-dot"
+          ></span>
+          <span
+            class="font-serif text-chalk font-light tracking-wide"
+            style="font-size:17px; line-height:1;"
+          >guardrail</span>
+        </a>
+
+        <!-- Back to site link -->
+        <a
+          href="#"
+          class="font-sans text-stone-dim hover:text-stone transition-colors duration-200 flex items-center gap-1.5"
+          style="font-size:11.5px;"
+        >
+          <svg style="width:11px;height:11px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+          </svg>
+          Back to site
+        </a>
+
+      </div>
+
+      <!-- ── Auth stage: holds both form states ─────────── -->
+      <!-- z-index: 1 so it sits above the grain overlay -->
+      <div class="auth-stage" style="z-index:1;" id="auth-stage">
+
+
+        <!-- ══════════════════════════════════════════════
+             STATE 1 — SIGN IN (default, active)
+        ══════════════════════════════════════════════ -->
+        <div class="auth-state state-active" id="state-signin">
+
+          <!-- Header -->
+          <div class="mb-8">
+            <p class="section-label mb-2.5">Welcome back</p>
+            <h1
+              class="font-serif text-chalk font-light leading-tight"
+              style="font-size: clamp(1.9rem, 4vw, 2.5rem);"
+            >
+              Welcome back.<br/>
+              <em class="italic" style="color:#A8C2B5;">Sign in to continue.</em>
+            </h1>
+            <p
+              class="font-sans text-stone font-light mt-3 leading-relaxed"
+              style="font-size:13px;"
+            >
+              Your daily limit is waiting. Pick up exactly where you left off.
+            </p>
+          </div>
+
+          <!-- Google OAuth button -->
+          <button class="btn-ghost-full mb-4">
+            <!-- Google "G" logo as inline SVG -->
+            <svg style="width:15px;height:15px;" viewBox="0 0 24 24" fill="none">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+            Continue with Google
+          </button>
+
+          <!-- Or divider -->
+          <div class="or-divider mb-5">
+            <span class="line"></span>
+            <span class="text">or sign in with email</span>
+            <span class="line"></span>
+          </div>
+
+          <!-- Email field -->
+          <div class="mb-4">
+            <label
+              for="si-email"
+              class="section-label block mb-1.5"
+            >Email Address</label>
+            <input
+              type="email"
+              id="si-email"
+              class="g-input"
+              placeholder="you@example.com"
+              autocomplete="email"
+            />
+          </div>
+
+          <!-- Password field -->
+          <div class="mb-2">
+            <div class="flex items-center justify-between mb-1.5">
+              <label for="si-password" class="section-label">Password</label>
+              <a href="#" class="font-sans text-stone-dim hover:text-sage transition-colors duration-200" style="font-size:11px;">
+                Forgot password?
+              </a>
+            </div>
+            <div class="pw-wrap">
+              <input
+                type="password"
+                id="si-password"
+                class="g-input"
+                placeholder="Your password"
+                autocomplete="current-password"
+              />
+              <!-- Show / hide password toggle -->
+              <button
+                class="pw-toggle"
+                type="button"
+                onclick="togglePassword('si-password', this)"
+                aria-label="Toggle password visibility"
+              >
+                <!-- Eye icon (shown when password is hidden) -->
+                <svg id="si-eye-show" style="width:14px;height:14px;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+                <!-- Eye-off icon (shown when password is visible) -->
+                <svg id="si-eye-hide" style="width:14px;height:14px;display:none;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                  <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
+                  <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
+                  <line x1="1" y1="1" x2="23" y2="23"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Inline validation error (hidden by default) -->
+          <p
+            id="si-error"
+            class="hidden font-sans text-amber mb-4 mt-1"
+            style="font-size:11.5px;"
+          ></p>
+
+          <!-- Sign In CTA -->
+          <button
+            onclick="handleSignIn()"
+            class="btn-primary mt-4 mb-5"
+          >
+            Sign In
+          </button>
+
+          <!-- Toggle to Sign Up -->
+          <p
+            class="font-sans text-stone-dim text-center"
+            style="font-size:12.5px;"
+          >
+            Don't have an account?
+            <span
+              class="text-link"
+              onclick="switchToSignup()"
+            >Create one</span>
+          </p>
+
+          <!-- Legal footer -->
+          <p
+            class="font-sans text-stone-deep text-center mt-6 leading-relaxed"
+            style="font-size:10.5px;"
+          >
+            By continuing, you agree to our
+            <a href="#" class="hover:text-stone-dim transition-colors duration-200" style="color:#4A4A47;">Terms of Service</a>
+            and
+            <a href="#" class="hover:text-stone-dim transition-colors duration-200" style="color:#4A4A47;">Privacy Policy</a>.
+          </p>
+
+        </div>
+        <!-- /STATE 1: SIGN IN -->
+
+
+        <!-- ══════════════════════════════════════════════
+             STATE 2 — CREATE ACCOUNT (sign-up)
+             Starts hidden; JS toggles it active.
+        ══════════════════════════════════════════════ -->
+        <div class="auth-state state-hidden" id="state-signup">
+
+          <!-- Header -->
+          <div class="mb-8">
+            <p class="section-label mb-2.5">New account</p>
+            <h1
+              class="font-serif text-chalk font-light leading-tight"
+              style="font-size: clamp(1.9rem, 4vw, 2.5rem);"
+            >
+              Claim your<br/>
+              <em class="italic" style="color:#A8C2B5;">financial clarity.</em>
+            </h1>
+            <p
+              class="font-sans text-stone font-light mt-3 leading-relaxed"
+              style="font-size:13px;"
+            >
+              Set up in under a minute. One number will change how you see money.
+            </p>
+          </div>
+
+          <!-- Google OAuth button -->
+          <button class="btn-ghost-full mb-4">
+            <svg style="width:15px;height:15px;" viewBox="0 0 24 24" fill="none">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+            Sign up with Google
+          </button>
+
+          <!-- Or divider -->
+          <div class="or-divider mb-5">
+            <span class="line"></span>
+            <span class="text">or create with email</span>
+            <span class="line"></span>
+          </div>
+
+          <!-- First Name field -->
+          <div class="mb-4">
+            <label
+              for="su-name"
+              class="section-label block mb-1.5"
+            >First Name</label>
+            <input
+              type="text"
+              id="su-name"
+              class="g-input"
+              placeholder="e.g. Tunde"
+              autocomplete="given-name"
+              maxlength="40"
+            />
+          </div>
+
+          <!-- Email field -->
+          <div class="mb-4">
+            <label
+              for="su-email"
+              class="section-label block mb-1.5"
+            >Email Address</label>
+            <input
+              type="email"
+              id="su-email"
+              class="g-input"
+              placeholder="you@example.com"
+              autocomplete="email"
+            />
+          </div>
+
+          <!-- Password field -->
+          <div class="mb-2">
+            <label
+              for="su-password"
+              class="section-label block mb-1.5"
+            >Password</label>
+            <div class="pw-wrap">
+              <input
+                type="password"
+                id="su-password"
+                class="g-input"
+                placeholder="Min. 8 characters"
+                autocomplete="new-password"
+              />
+              <button
+                class="pw-toggle"
+                type="button"
+                onclick="togglePassword('su-password', this)"
+                aria-label="Toggle password visibility"
+              >
+                <svg id="su-eye-show" style="width:14px;height:14px;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+                <svg id="su-eye-hide" style="width:14px;height:14px;display:none;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                  <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
+                  <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
+                  <line x1="1" y1="1" x2="23" y2="23"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Password strength meter -->
+          <div class="mt-2 mb-1" id="pw-strength-wrap" style="display:none;">
+            <div style="height:2px; background:#1F2229; border-radius:9999px; overflow:hidden;">
+              <div
+                id="pw-strength-bar"
+                style="height:100%; border-radius:9999px; width:0%; transition: width 0.3s ease, background 0.3s ease;"
+              ></div>
+            </div>
+            <p
+              id="pw-strength-label"
+              class="font-sans mt-1"
+              style="font-size:10.5px; color:#666662;"
+            ></p>
+          </div>
+
+          <!-- Inline validation error -->
+          <p
+            id="su-error"
+            class="hidden font-sans text-amber mb-3 mt-1"
+            style="font-size:11.5px;"
+          ></p>
+
+          <!-- Start Saving CTA -->
+          <button
+            onclick="handleSignUp()"
+            class="btn-primary mt-4 mb-5"
+          >
+            Start Saving →
+          </button>
+
+          <!-- Toggle back to Sign In -->
+          <p
+            class="font-sans text-stone-dim text-center"
+            style="font-size:12.5px;"
+          >
+            Already have an account?
+            <span
+              class="text-link"
+              onclick="switchToSignin()"
+            >Sign in</span>
+          </p>
+
+          <!-- Legal footer -->
+          <p
+            class="font-sans text-stone-deep text-center mt-6 leading-relaxed"
+            style="font-size:10.5px;"
+          >
+            By creating an account, you agree to our
+            <a href="#" class="hover:text-stone-dim transition-colors duration-200" style="color:#4A4A47;">Terms of Service</a>
+            and
+            <a href="#" class="hover:text-stone-dim transition-colors duration-200" style="color:#4A4A47;">Privacy Policy</a>.
+          </p>
+
+        </div>
+        <!-- /STATE 2: CREATE ACCOUNT -->
+
+
+      </div>
+      <!-- /auth-stage -->
+
+      <!-- Trust strip at bottom of form panel -->
+      <div
+        class="absolute bottom-0 left-0 right-0 flex items-center justify-center gap-2.5 py-3.5"
+        style="border-top:1px solid #1F2229; z-index:1;"
+      >
+        <svg class="text-stone-deep" style="width:11px;height:11px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <rect x="3" y="11" width="18" height="11" rx="2"/>
+          <path d="M7 11V7a5 5 0 0110 0v4"/>
+        </svg>
+        <span
+          class="font-sans text-stone-deep uppercase tracking-widest"
+          style="font-size:9.5px; letter-spacing:0.14em;"
+        >
+          256-bit encrypted · We never store raw account data
+        </span>
+      </div>
+
+    </div>
+    <!-- /FORM PANEL -->
+
+
+    <!-- ╔══════════════════════════════════════════════════╗
+         ║  RIGHT PANEL — Editorial Brand Panel            ║
+         ║  (Hidden on mobile, shown on desktop ≥900px)    ║
+         ╚══════════════════════════════════════════════════╝ -->
+    <div class="brand-panel">
+
+      <!-- Thin vertical divider on the left edge of the right panel -->
+      <div class="panel-divider"></div>
+
+      <!-- Decorative ambient elements -->
+      <div class="brand-glow-2"></div>
+
+      <!-- Giant ghost letter behind everything -->
+      <div class="brand-bg-letter" aria-hidden="true">G</div>
+
+      <!-- Decorative grid lines (horizontal) — subtle vertical rhythm -->
+      <div
+        style="
+          position:absolute; inset:0; z-index:0; pointer-events:none;
+          background-image:
+            linear-gradient(rgba(143,168,155,0.025) 1px, transparent 1px);
+          background-size: 100% 80px;
+        "
+      ></div>
+
+      <!-- Floating metric pill — top-right area -->
+      <div
+        style="
+          position:absolute;
+          top:8%;
+          right:7%;
+          z-index:2;
+          display:flex;
+          align-items:center;
+          gap:10px;
+          background:rgba(26,29,36,0.75);
+          border:1px solid rgba(143,168,155,0.18);
+          border-radius:4px;
+          padding:14px 18px;
+          backdrop-filter:blur(10px);
+        "
+      >
+        <div>
+          <p
+            class="font-sans uppercase"
+            style="font-size:9px; color:#666662; letter-spacing:0.18em; margin-bottom:5px;"
+          >Live Constraint</p>
+          <p
+            class="font-serif font-light text-sage"
+            style="font-size:1.7rem; line-height:1;"
+          >₦5,666</p>
+          <p
+            class="font-sans"
+            style="font-size:9.5px; color:#9A9A96; margin-top:3px;"
+          >today's limit · 14 days left</p>
+        </div>
+        <span
+          class="block w-1.5 h-1.5 rounded-full bg-sage flex-shrink-0 self-start mt-1 live-dot"
+        ></span>
+      </div>
+
+      <!-- Floating steps pill — mid-left area -->
+      <div
+        style="
+          position:absolute;
+          top:34%;
+          left:9%;
+          z-index:2;
+          background:rgba(26,29,36,0.70);
+          border:1px solid #2A2E38;
+          border-radius:4px;
+          padding:14px 18px;
+          backdrop-filter:blur(8px);
+          max-width:200px;
+        "
+      >
+        <p
+          class="font-sans uppercase"
+          style="font-size:9px; color:#666662; letter-spacing:0.18em; margin-bottom:10px;"
+        >The Mechanism</p>
+        <!-- Step 1 -->
+        <div class="flex items-center gap-2.5" style="margin-bottom:8px;">
+          <span class="block w-1 h-1 rounded-full bg-sage flex-shrink-0"></span>
+          <span class="font-sans" style="font-size:11px; color:#9A9A96;">Lock the Foundation</span>
+        </div>
+        <!-- Step 2 -->
+        <div class="flex items-center gap-2.5" style="margin-bottom:8px;">
+          <span class="block w-1 h-1 rounded-full bg-sage flex-shrink-0"></span>
+          <span class="font-sans" style="font-size:11px; color:#9A9A96;">The Silent Buffer <strong style="color:#8FA89B;">15%</strong></span>
+        </div>
+        <!-- Step 3 -->
+        <div class="flex items-center gap-2.5">
+          <span class="block w-1 h-1 rounded-full bg-sage flex-shrink-0"></span>
+          <span class="font-sans" style="font-size:11px; color:#9A9A96;">Dynamic Calibration</span>
+        </div>
+      </div>
+
+      <!-- Bottom fade overlay — smoothly darkens the bottom -->
+      <div class="brand-bottom-fade"></div>
+
+      <!-- Main editorial content — anchored to bottom -->
+      <div
+        style="position:relative; z-index:2; padding:0 52px 52px;"
+      >
+
+        <!-- Rule -->
+        <div class="brand-rule" style="margin-bottom:22px;"></div>
+
+        <!-- THE MAIN QUOTE — Cormorant Garamond -->
+        <blockquote
+          class="font-serif font-light leading-tight brand-quote-glow"
+          style="font-size: clamp(2.4rem, 3.8vw, 3.4rem); color:#F4F4F2; margin-bottom:20px; max-width:480px;"
+        >
+          "Discipline is not&nbsp;a&nbsp;cage.<br/>
+          It is the only door<br/>
+          to <em class="italic" style="color:#A8C2B5;">genuine freedom.</em>"
+        </blockquote>
+
+        <!-- Attribution -->
+        <p
+          class="font-sans text-stone-dim font-light"
+          style="font-size:12px; letter-spacing:0.10em; margin-bottom:36px;"
+        >
+          — The Guardrail Principle
+        </p>
+
+        <!-- Stats row -->
+        <div
+          style="
+            display:grid;
+            grid-template-columns:repeat(3,1fr);
+            gap:0;
+            border-top:1px solid #1F2229;
+            padding-top:28px;
+          "
+        >
+          <!-- Stat 1 -->
+          <div style="padding-right:24px;">
+            <p class="stat-number">15%</p>
+            <p
+              class="font-sans font-light text-stone-dim"
+              style="font-size:11px; margin-top:5px; line-height:1.4;"
+            >Auto-hidden inflation buffer</p>
+          </div>
+          <!-- Stat 2 -->
+          <div
+            style="
+              padding:0 24px;
+              border-left:1px solid #1F2229;
+              border-right:1px solid #1F2229;
+            "
+          >
+            <p class="stat-number">1</p>
+            <p
+              class="font-sans font-light text-stone-dim"
+              style="font-size:11px; margin-top:5px; line-height:1.4;"
+            >Number. No noise. No shame.</p>
+          </div>
+          <!-- Stat 3 -->
+          <div style="padding-left:24px;">
+            <p class="stat-number">∞</p>
+            <p
+              class="font-sans font-light text-stone-dim"
+              style="font-size:11px; margin-top:5px; line-height:1.4;"
+            >Billing cycles, always free</p>
+          </div>
+        </div>
+
+      </div>
+      <!-- /editorial content -->
+
+    </div>
+    <!-- /BRAND PANEL -->
+
+
+  </div>
+  <!-- /AUTH WRAPPER -->
+
+
+  <!-- ════════════════════════════════════════════════════
+       JAVASCRIPT
+       ────────────────────────────────────────────────────
+       Three responsibilities:
+         1. switchToSignup()   — toggle to State 2
+         2. switchToSignin()   — toggle back to State 1
+         3. togglePassword()   — show/hide password fields
+         4. handleSignIn()     — basic client-side validation
+         5. handleSignUp()     — basic client-side validation
+         6. passwordStrength() — live strength indicator
+       ────────────────────────────────────────────────────
+       Approach: just adding/removing CSS classes.
+       No frameworks. No libraries. Heavily commented.
+  ════════════════════════════════════════════════════ -->
+  <script>
+
+    /* ─────────────────────────────────────────────────────
+       TOGGLE: Switch to Sign-Up (State 2)
+       ─────────────────────────────────────────────────
+       1. Add .state-hidden to #state-signin  (fades it out)
+       2. Wait for CSS transition to finish (280ms)
+       3. Remove .state-hidden, add .state-active to #state-signup
+    ───────────────────────────────────────────────────── */
+    function switchToSignup() {
+
+      var signIn  = document.getElementById('state-signin');
+      var signUp  = document.getElementById('state-signup');
+
+      // ── Step 1: Fade out the sign-in form ────────────────
+      signIn.classList.remove('state-active');
+      signIn.classList.add('state-hidden');
+
+      // ── Step 2: After the 280ms fade-out, show sign-up ───
+      setTimeout(function() {
+        signUp.classList.remove('state-hidden');
+        signUp.classList.add('state-active');
+
+        // Update page title for accessibility / bookmarking
+        document.title = 'Guardrail — Create Account';
+
+        // Focus the first input in the sign-up form
+        document.getElementById('su-name').focus();
+
+        // Clear any previous errors
+        clearErrors();
+
+      }, 290);
+    }
+
+
+    /* ─────────────────────────────────────────────────────
+       TOGGLE: Switch back to Sign-In (State 1)
+    ───────────────────────────────────────────────────── */
+    function switchToSignin() {
+
+      var signIn  = document.getElementById('state-signin');
+      var signUp  = document.getElementById('state-signup');
+
+      // Fade out sign-up
+      signUp.classList.remove('state-active');
+      signUp.classList.add('state-hidden');
+
+      // After transition, show sign-in
+      setTimeout(function() {
+        signIn.classList.remove('state-hidden');
+        signIn.classList.add('state-active');
+
+        document.title = 'Guardrail — Sign In';
+        document.getElementById('si-email').focus();
+
+        clearErrors();
+
+      }, 290);
+    }
+
+
+    /* ─────────────────────────────────────────────────────
+       TOGGLE PASSWORD VISIBILITY
+       ─────────────────────────────────────────────────
+       inputId   — the ID of the <input type="password">
+       toggleBtn — the button element that was clicked
+       Each button has two SVG children: eye-show and eye-hide.
+       We swap their display states when toggling.
+    ───────────────────────────────────────────────────── */
+    function togglePassword(inputId, toggleBtn) {
+
+      var input = document.getElementById(inputId);
+
+      // Determine which eye icons to look for (si- or su- prefix)
+      var prefix = inputId.split('-')[0];   // "si" or "su"
+      var showIcon = document.getElementById(prefix + '-eye-show');
+      var hideIcon = document.getElementById(prefix + '-eye-hide');
+
+      if (input.type === 'password') {
+        // Currently hidden → show the password
+        input.type = 'text';
+        if (showIcon) showIcon.style.display = 'none';
+        if (hideIcon) hideIcon.style.display = 'block';
+      } else {
+        // Currently visible → hide the password
+        input.type = 'password';
+        if (showIcon) showIcon.style.display = 'block';
+        if (hideIcon) hideIcon.style.display = 'none';
+      }
+    }
+
+
+    /* ─────────────────────────────────────────────────────
+       BASIC EMAIL VALIDATOR
+    ───────────────────────────────────────────────────── */
+    function isValidEmail(email) {
+      // Simple RFC-5322-like check — good enough for client-side
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+    }
+
+
+    /* ─────────────────────────────────────────────────────
+       SHOW ERROR on a specific input + message paragraph
+    ───────────────────────────────────────────────────── */
+    function showError(inputEl, errParaId, message) {
+      inputEl.classList.add('input-error');
+      var errPara = document.getElementById(errParaId);
+      errPara.textContent = message;
+      errPara.classList.remove('hidden');
+    }
+
+
+    /* ─────────────────────────────────────────────────────
+       CLEAR all error states on both forms
+    ───────────────────────────────────────────────────── */
+    function clearErrors() {
+      // Sign-in
+      var siEmail = document.getElementById('si-email');
+      var siPw    = document.getElementById('si-password');
+      var siErr   = document.getElementById('si-error');
+      if (siEmail) siEmail.classList.remove('input-error');
+      if (siPw)    siPw.classList.remove('input-error');
+      if (siErr)   { siErr.textContent = ''; siErr.classList.add('hidden'); }
+
+      // Sign-up
+      var suName  = document.getElementById('su-name');
+      var suEmail = document.getElementById('su-email');
+      var suPw    = document.getElementById('su-password');
+      var suErr   = document.getElementById('su-error');
+      if (suName)  suName.classList.remove('input-error');
+      if (suEmail) suEmail.classList.remove('input-error');
+      if (suPw)    suPw.classList.remove('input-error');
+      if (suErr)   { suErr.textContent = ''; suErr.classList.add('hidden'); }
+    }
+
+
+    /* ─────────────────────────────────────────────────────
+       HANDLE SIGN IN — client-side validation only
+       In a real Django app, this would submit to a view.
+    ───────────────────────────────────────────────────── */
+    function handleSignIn() {
+
+      // Clear previous errors
+      clearErrors();
+
+      var email    = document.getElementById('si-email');
+      var password = document.getElementById('si-password');
+      var hasError = false;
+
+      // Validate email
+      if (!email.value.trim() || !isValidEmail(email.value)) {
+        showError(email, 'si-error', 'Please enter a valid email address.');
+        hasError = true;
+      }
+
+      // Validate password (non-empty)
+      if (!password.value) {
+        password.classList.add('input-error');
+        if (!hasError) {
+          showError(password, 'si-error', 'Please enter your password.');
+        }
+        hasError = true;
+      }
+
+      if (hasError) return;
+
+      // ── Placeholder: simulate a sign-in action ───────────
+      // In Django: document.getElementById('signin-form').submit();
+      // For now: show a brief success state on the button
+      var btn = event.currentTarget || document.querySelector('#state-signin .btn-primary');
+      btn.textContent  = '✓ Signing in…';
+      btn.style.background = '#8FA89B';
+      btn.style.color      = '#121418';
+      btn.disabled = true;
+
+      // Reset after 2s (demo only — real app would redirect)
+      setTimeout(function() {
+        btn.textContent  = 'Sign In';
+        btn.style.background = '';
+        btn.style.color      = '';
+        btn.disabled = false;
+      }, 2000);
+    }
+
+
+    /* ─────────────────────────────────────────────────────
+       HANDLE SIGN UP — client-side validation only
+    ───────────────────────────────────────────────────── */
+    function handleSignUp() {
+
+      clearErrors();
+
+      var name     = document.getElementById('su-name');
+      var email    = document.getElementById('su-email');
+      var password = document.getElementById('su-password');
+      var hasError = false;
+
+      // Validate first name
+      if (!name.value.trim() || name.value.trim().length < 2) {
+        showError(name, 'su-error', 'Please enter your first name (at least 2 characters).');
+        hasError = true;
+      }
+
+      // Validate email
+      if (!hasError && (!email.value.trim() || !isValidEmail(email.value))) {
+        showError(email, 'su-error', 'Please enter a valid email address.');
+        hasError = true;
+      }
+
+      // Validate password length
+      if (!hasError && password.value.length < 8) {
+        showError(password, 'su-error', 'Password must be at least 8 characters long.');
+        hasError = true;
+      }
+
+      if (hasError) return;
+
+      // ── Placeholder: simulate account creation ─────────────
+      var btn = document.querySelector('#state-signup .btn-primary');
+      btn.textContent  = '✓ Creating your account…';
+      btn.style.background = '#8FA89B';
+      btn.style.color      = '#121418';
+      btn.disabled = true;
+
+      setTimeout(function() {
+        btn.textContent  = 'Start Saving →';
+        btn.style.background = '';
+        btn.style.color      = '';
+        btn.disabled = false;
+      }, 2000);
+    }
+
+
+    /* ─────────────────────────────────────────────────────
+       PASSWORD STRENGTH METER (sign-up form only)
+       ─────────────────────────────────────────────────
+       Runs on every keystroke in the sign-up password field.
+       Scores the password 0-4 and updates a thin coloured bar:
+         0-1: Weak  (red-muted)
+         2:   Fair  (amber)
+         3:   Good  (sage)
+         4:   Strong (sage-glow)
+    ───────────────────────────────────────────────────── */
+    document.getElementById('su-password').addEventListener('input', function() {
+
+      var pw      = this.value;
+      var wrap    = document.getElementById('pw-strength-wrap');
+      var bar     = document.getElementById('pw-strength-bar');
+      var label   = document.getElementById('pw-strength-label');
+
+      // Hide the meter if the field is empty
+      if (!pw) {
+        wrap.style.display = 'none';
+        return;
+      }
+
+      wrap.style.display = 'block';
+
+      // Score the password
+      var score = 0;
+      if (pw.length >= 8)                    score++;  // length OK
+      if (pw.length >= 12)                   score++;  // longer = better
+      if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;  // mixed case
+      if (/[0-9]/.test(pw))                  score++;  // has a number
+      if (/[^A-Za-z0-9]/.test(pw))           score++;  // special char (bonus, max 5 but we cap at 4)
+      score = Math.min(score, 4);
+
+      // Map score → colour + label text
+      var levels = [
+        { pct:  20, color: '#B07070', text: 'Too weak'  },
+        { pct:  40, color: '#B07070', text: 'Weak'      },
+        { pct:  60, color: '#C9A96E', text: 'Fair'      },
+        { pct:  80, color: '#8FA89B', text: 'Good'      },
+        { pct: 100, color: '#A8C2B5', text: 'Strong ✓'  },
+      ];
+
+      var level = levels[score];
+      bar.style.width      = level.pct + '%';
+      bar.style.background = level.color;
+      label.textContent    = level.text;
+      label.style.color    = level.color;
+    });
+
+
+    /* ─────────────────────────────────────────────────────
+       KEYBOARD: allow Enter key to submit forms
+    ───────────────────────────────────────────────────── */
+    // Sign-in inputs
+    ['si-email', 'si-password'].forEach(function(id) {
+      document.getElementById(id).addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') handleSignIn();
+      });
+    });
+
+    // Sign-up inputs
+    ['su-name', 'su-email', 'su-password'].forEach(function(id) {
+      document.getElementById(id).addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') handleSignUp();
+      });
+    });
+
+    /* ─────────────────────────────────────────────────────
+       CLEAR error styling when user starts retyping
+    ───────────────────────────────────────────────────── */
+    ['si-email','si-password','su-name','su-email','su-password'].forEach(function(id) {
+      var el = document.getElementById(id);
+      el.addEventListener('input', function() {
+        this.classList.remove('input-error');
+      });
+    });
+
+  </script>
+
+</body>
+</html>
+
