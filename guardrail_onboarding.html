@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guardrail — Set Up Your Guardrail</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['Cormorant Garamond', 'Georgia', 'serif'],
+            sans:  ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            'bg-base':    '#121418',
+            'bg-surface': '#1A1D24',
+            'bg-raised':  '#20242D',
+            'chalk':      '#F4F4F2',
+            'chalk-dim':  '#C8C8C5',
+            'stone':      '#9A9A96',
+            'stone-dim':  '#666662',
+            'sage':       '#8FA89B',
+            'sage-dim':   '#6B8579',
+            'sage-glow':  '#A8C2B5',
+            'amber-soft': '#C9A96E',
+            'line':       '#2A2E38',
+            'line-dim':   '#1F2229',
+          },
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* ── Reset & Base ────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background-color: #121418;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow: hidden;
+    }
+
+    /* ── Grain overlay ───────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.028;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: 128px 128px;
+    }
+
+    /* ── Ambient background glow ─────────────────────────── */
+    body::after {
+      content: '';
+      position: fixed;
+      top: -20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 700px;
+      height: 700px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(143,168,155,0.045) 0%, transparent 65%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Typography ──────────────────────────────────────── */
+    .serif { font-family: 'Cormorant Garamond', Georgia, serif; }
+    .sans  { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+
+    /* ── Modal card shadow ───────────────────────────────── */
+    .modal-shadow {
+      box-shadow:
+        0 0 0 1px rgba(143,168,155,0.08),
+        0 32px 80px rgba(0,0,0,0.65),
+        0 8px 20px rgba(0,0,0,0.35);
+    }
+
+    /* ── Progress bar track ──────────────────────────────── */
+    .progress-track {
+      background: #1F2229;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: linear-gradient(90deg, #6B8579, #8FA89B, #A8C2B5);
+      transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* ── Input styling ───────────────────────────────────── */
+    .field-input {
+      width: 100%;
+      background: #20242D;
+      border: 1px solid #2A2E38;
+      border-radius: 3px;
+      color: #F4F4F2;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      padding: 12px 14px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .field-input:focus {
+      border-color: rgba(143, 168, 155, 0.55);
+      box-shadow: 0 0 0 3px rgba(143, 168, 155, 0.07);
+    }
+    .field-input::placeholder { color: #4A4A47; }
+
+    /* Currency prefix wrapper */
+    .currency-wrap { position: relative; }
+    .currency-prefix {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #8FA89B;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      pointer-events: none;
+      user-select: none;
+      z-index: 1;
+    }
+    .currency-wrap .field-input { padding-left: 34px; }
+
+    /* Date input calendar icon color */
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.4) sepia(1) saturate(0.5) hue-rotate(100deg);
+      cursor: pointer;
+      opacity: 0.7;
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+
+    /* Select arrow */
+    .field-select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239A9A96' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      cursor: pointer;
+    }
+
+    /* ── Step transitions ─────────────────────────────────── */
+    .wizard-step {
+      display: none;
+      opacity: 0;
+      transform: translateX(18px);
+      transition: opacity 0.38s cubic-bezier(0.22,1,0.36,1), transform 0.38s cubic-bezier(0.22,1,0.36,1);
+    }
+    .wizard-step.active {
+      display: block;
+      opacity: 1;
+      transform: none;
+    }
+    .wizard-step.exit-left {
+      display: block;
+      opacity: 0;
+      transform: translateX(-18px);
+    }
+    .wizard-step.enter-right {
+      display: block;
+      opacity: 0;
+      transform: translateX(18px);
+    }
+
+    /* ── Obligation row ───────────────────────────────────── */
+    .obligation-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: rowIn 0.3s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    @keyframes rowIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: none; }
+    }
+    .obligation-row .row-label {
+      flex: 1.2;
+      min-width: 0;
+    }
+    .obligation-row .row-amount {
+      flex: 1;
+      min-width: 0;
+    }
+    .remove-btn {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 2px;
+      border: 1px solid #2A2E38;
+      background: transparent;
+      color: #666662;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+    }
+    .remove-btn:hover { border-color: rgba(201,169,110,0.4); color: #C9A96E; background: rgba(201,169,110,0.05); }
+
+    /* ── Buffer card ──────────────────────────────────────── */
+    .buffer-card {
+      background: rgba(143, 168, 155, 0.055);
+      border: 1px solid rgba(143, 168, 155, 0.18);
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+    .buffer-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(143,168,155,0.45), transparent);
+    }
+
+    /* ── Primary CTA button ───────────────────────────────── */
+    .btn-primary {
+      width: 100%;
+      background: #F4F4F2;
+      color: #121418;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 3px;
+      padding: 15px 24px;
+      cursor: pointer;
+      transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-primary:hover {
+      background: #E0E0DC;
+      box-shadow: 0 4px 24px rgba(244,244,242,0.10);
+    }
+    .btn-primary:active { transform: scale(0.99); }
+
+    /* Step 3 activate button — sage glow */
+    .btn-activate {
+      width: 100%;
+      background: #8FA89B;
+      color: #121418;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 3px;
+      padding: 15px 24px;
+      cursor: pointer;
+      transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-activate:hover {
+      background: #A8C2B5;
+      box-shadow: 0 0 0 1px rgba(143,168,155,0.3), 0 8px 32px rgba(143,168,155,0.22), 0 2px 8px rgba(143,168,155,0.15);
+    }
+    .btn-activate:active { transform: scale(0.99); }
+    .btn-activate:disabled {
+      background: #3A3E47;
+      color: #666662;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    /* Loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(18,20,24,0.3);
+      border-top-color: #121418;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Ghost back button ─────────────────────────────────── */
+    .btn-ghost {
+      background: transparent;
+      color: #9A9A96;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      border: 1px solid #2A2E38;
+      border-radius: 3px;
+      padding: 14px 20px;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+      white-space: nowrap;
+    }
+    .btn-ghost:hover { border-color: #9A9A96; color: #F4F4F2; }
+
+    /* ── Summary card (step 3) ────────────────────────────── */
+    .summary-pill {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 14px;
+      background: #20242D;
+      border: 1px solid #2A2E38;
+      border-radius: 3px;
+    }
+
+    /* ── Completion overlay ───────────────────────────────── */
+    #completion-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: #121418;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+    }
+    #completion-overlay.visible {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* ── Scrollable step body ─────────────────────────────── */
+    .step-body {
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #2A2E38 transparent;
+    }
+    .step-body::-webkit-scrollbar       { width: 3px; }
+    .step-body::-webkit-scrollbar-track { background: transparent; }
+    .step-body::-webkit-scrollbar-thumb { background: #2A2E38; border-radius: 2px; }
+
+    /* ── Mobile height handling ───────────────────────────── */
+    @media (max-height: 700px) {
+      .modal-card { max-height: 95vh !important; }
+    }
+
+    /* ── Number input arrow hide ──────────────────────────── */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+
+    /* Focus-visible ring suppression */
+    button:focus-visible { outline: 2px solid rgba(143,168,155,0.5); outline-offset: 2px; }
+    input:focus-visible, select:focus-visible { outline: none; }
+  </style>
+</head>
+
+<body class="relative flex items-center justify-center min-h-screen p-4 sm:p-6">
+
+  <!-- ═══════════════════════════════════════════════════════
+       MODAL CARD
+  ═══════════════════════════════════════════════════════ -->
+  <div class="modal-card relative z-10 w-full max-w-md modal-shadow rounded-md"
+       style="background: #1A1D24; max-height: 92vh; display: flex; flex-direction: column;">
+
+    <!-- ── TOP BAR: Logo + Step label ───────────────────── -->
+    <div class="flex items-center justify-between px-7 pt-6 pb-5 flex-shrink-0"
+         style="border-bottom: 1px solid #1F2229;">
+      <div class="flex items-center gap-2">
+        <span class="inline-block w-1.5 h-1.5 rounded-full" style="background:#8FA89B;"></span>
+        <span class="serif text-chalk font-light tracking-wide" style="font-size:17px; line-height:1;">guardrail</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="sans text-stone-dim" id="step-label"
+              style="font-size:11px; letter-spacing:0.14em; text-transform:uppercase;">
+          Step 1 of 3
+        </span>
+      </div>
+    </div>
+
+    <!-- ── PROGRESS BAR ──────────────────────────────────── -->
+    <div class="px-7 pt-4 pb-0 flex-shrink-0">
+      <div class="progress-track w-full" style="height: 2px;">
+        <div class="progress-fill" id="progress-fill" style="width: 33.3%;"></div>
+      </div>
+      <!-- Step dots -->
+      <div class="flex justify-between mt-2.5">
+        <div class="flex items-center gap-1.5" id="dot-1">
+          <span class="inline-block w-1.5 h-1.5 rounded-full" style="background:#8FA89B;"></span>
+          <span class="sans" style="font-size:10px; color:#8FA89B; letter-spacing:0.12em; text-transform:uppercase;">Income</span>
+        </div>
+        <div class="flex items-center gap-1.5" id="dot-2">
+          <span class="inline-block w-1.5 h-1.5 rounded-full" style="background:#2A2E38;" id="dot-2-circle"></span>
+          <span class="sans" style="font-size:10px; color:#666662; letter-spacing:0.12em; text-transform:uppercase;" id="dot-2-label">Obligations</span>
+        </div>
+        <div class="flex items-center gap-1.5" id="dot-3">
+          <span class="inline-block w-1.5 h-1.5 rounded-full" style="background:#2A2E38;" id="dot-3-circle"></span>
+          <span class="sans" style="font-size:10px; color:#666662; letter-spacing:0.12em; text-transform:uppercase;" id="dot-3-label">Guardrail</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP CONTAINER ─────────────────────────────────── -->
+    <div class="step-body flex-1 px-7 py-6" style="min-height: 0;">
+
+      <!-- ╔══════════════════════════════════════════════╗
+           ║  STEP 1 — INCOME & CYCLE                    ║
+           ╚══════════════════════════════════════════════╝ -->
+      <div class="wizard-step active" id="step-1">
+
+        <!-- Headline -->
+        <div class="mb-7">
+          <p class="sans mb-1.5" style="font-size:11px; color:#8FA89B; letter-spacing:0.2em; text-transform:uppercase;">Foundation</p>
+          <h1 class="serif text-chalk font-light leading-tight" style="font-size: clamp(1.75rem, 5vw, 2.2rem);">
+            Let's establish<br/><em class="italic" style="color:#A8C2B5;">your baseline.</em>
+          </h1>
+          <p class="sans mt-3" style="font-size:13px; color:#9A9A96; line-height:1.65; font-weight:300;">
+            Tell us what lands in your account each month and when your next cycle begins.
+          </p>
+        </div>
+
+        <!-- Net Monthly Income -->
+        <div class="mb-5">
+          <label class="sans block mb-2" style="font-size:11px; color:#9A9A96; letter-spacing:0.14em; text-transform:uppercase;">
+            Net Monthly Income
+          </label>
+          <div class="currency-wrap">
+            <span class="currency-prefix">₦</span>
+            <input
+              type="number"
+              id="s1-income"
+              class="field-input"
+              placeholder="e.g. 350,000"
+              min="0"
+              autocomplete="off"
+            />
+          </div>
+          <p class="sans mt-1.5" style="font-size:11px; color:#4A4A47;">
+            Enter your take-home pay — after tax and pension deductions.
+          </p>
+        </div>
+
+        <!-- Next Payday -->
+        <div class="mb-5">
+          <label class="sans block mb-2" style="font-size:11px; color:#9A9A96; letter-spacing:0.14em; text-transform:uppercase;">
+            Next Payday
+          </label>
+          <input
+            type="date"
+            id="s1-payday"
+            class="field-input field-select"
+            style="padding-right: 40px;"
+          />
+          <p class="sans mt-1.5" style="font-size:11px; color:#4A4A47;">
+            This anchors your billing cycle. Guardrail divides from today to this date.
+          </p>
+        </div>
+
+        <!-- Cycle Frequency hint -->
+        <div class="mb-8 p-4 rounded-sm" style="background:#20242D; border:1px solid #2A2E38;">
+          <div class="flex items-start gap-3">
+            <svg class="flex-shrink-0 mt-0.5" style="width:14px;height:14px;color:#8FA89B;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <p class="sans" style="font-size:12px; color:#666662; line-height:1.6; font-weight:300;">
+              Most Nigerian salaries land on the <strong style="color:#9A9A96; font-weight:500;">25th–28th</strong> of the month.
+              If yours varies, pick the latest date for safety.
+            </p>
+          </div>
+        </div>
+
+        <!-- CTA -->
+        <button class="btn-primary" onclick="goToStep(2)">
+          Next: Fixed Obligations →
+        </button>
+
+        <!-- Error message -->
+        <p class="sans text-center mt-3 hidden" id="s1-error" style="font-size:12px; color:#C9A96E;">
+          Please fill in both your income and next payday.
+        </p>
+      </div>
+
+
+      <!-- ╔══════════════════════════════════════════════╗
+           ║  STEP 2 — FIXED OBLIGATIONS                 ║
+           ╚══════════════════════════════════════════════╝ -->
+      <div class="wizard-step" id="step-2">
+
+        <!-- Headline -->
+        <div class="mb-6">
+          <p class="sans mb-1.5" style="font-size:11px; color:#8FA89B; letter-spacing:0.2em; text-transform:uppercase;">Obligations</p>
+          <h1 class="serif text-chalk font-light leading-tight" style="font-size: clamp(1.75rem, 5vw, 2.2rem);">
+            What is<br/><em class="italic" style="color:#A8C2B5;">non-negotiable?</em>
+          </h1>
+          <p class="sans mt-3" style="font-size:13px; color:#9A9A96; line-height:1.65; font-weight:300;">
+            Subtract the money that isn't really yours — rent, utilities, and family obligations.
+            Be honest. This is your foundation.
+          </p>
+        </div>
+
+        <!-- Column headers -->
+        <div class="flex items-center gap-2.5 mb-3" style="padding-right: 38px;">
+          <span class="sans flex-[1.2]" style="font-size:10px; color:#666662; letter-spacing:0.14em; text-transform:uppercase;">Expense</span>
+          <span class="sans flex-1" style="font-size:10px; color:#666662; letter-spacing:0.14em; text-transform:uppercase;">Monthly (₦)</span>
+        </div>
+
+        <!-- Obligation rows list -->
+        <div id="obligations-list" class="space-y-2.5 mb-4">
+          <!-- Rows injected by JS -->
+        </div>
+
+        <!-- Add row button -->
+        <button
+          onclick="addObligationRow()"
+          class="flex items-center gap-2 mb-7 group"
+          style="background:none; border:none; cursor:pointer; padding:0;"
+        >
+          <span style="width:22px;height:22px;border-radius:2px;border:1px dashed #2A2E38;display:flex;align-items:center;justify-content:center;transition:border-color 0.2s,background 0.2s;"
+                class="group-hover:border-sage-dim group-hover:bg-sage-dim group-hover:bg-opacity-10">
+            <svg style="width:10px;height:10px;color:#666662;" class="group-hover:text-sage transition-colors duration-200" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </span>
+          <span class="sans group-hover:text-sage transition-colors duration-200"
+                style="font-size:12px; color:#666662; letter-spacing:0.08em;">
+            Add another fixed cost
+          </span>
+        </button>
+
+        <!-- Running total -->
+        <div class="mb-6 flex items-center justify-between py-3 px-4 rounded-sm"
+             style="background:#20242D; border:1px solid #2A2E38;">
+          <span class="sans" style="font-size:11px; color:#9A9A96; letter-spacing:0.12em; text-transform:uppercase;">Total Fixed Costs</span>
+          <span class="sans font-semibold" style="font-size:15px; color:#F4F4F2;" id="total-fixed">₦ —</span>
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex gap-3">
+          <button class="btn-ghost" onclick="goToStep(1)">
+            ← Back
+          </button>
+          <button class="btn-primary flex-1" onclick="goToStep(3)">
+            Next: Set Guardrail →
+          </button>
+        </div>
+
+        <p class="sans text-center mt-3 hidden" id="s2-error" style="font-size:12px; color:#C9A96E;">
+          Add at least one fixed obligation to continue.
+        </p>
+      </div>
+
+
+      <!-- ╔══════════════════════════════════════════════╗
+           ║  STEP 3 — GUARDRAIL PROTOCOL                ║
+           ╚══════════════════════════════════════════════╝ -->
+      <div class="wizard-step" id="step-3">
+
+        <!-- Headline -->
+        <div class="mb-6">
+          <p class="sans mb-1.5" style="font-size:11px; color:#8FA89B; letter-spacing:0.2em; text-transform:uppercase;">Protocol</p>
+          <h1 class="serif text-chalk font-light leading-tight" style="font-size: clamp(1.75rem, 5vw, 2.2rem);">
+            Activating your<br/><em class="italic" style="color:#A8C2B5;">15% Buffer.</em>
+          </h1>
+        </div>
+
+        <!-- Buffer explanation card -->
+        <div class="buffer-card p-5 mb-6">
+          <div class="flex items-start gap-3.5">
+            <div class="flex-shrink-0 mt-0.5 w-8 h-8 rounded-sm flex items-center justify-center"
+                 style="background:rgba(143,168,155,0.12); border:1px solid rgba(143,168,155,0.2);">
+              <svg style="width:15px;height:15px;" fill="none" stroke="#8FA89B" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
+              </svg>
+            </div>
+            <div>
+              <p class="sans font-semibold mb-2" style="font-size:12px; color:#8FA89B; letter-spacing:0.12em; text-transform:uppercase;">
+                The Silent Vault
+              </p>
+              <p class="sans" style="font-size:13px; color:#9A9A96; line-height:1.7; font-weight:300;">
+                Guardrail will automatically hide <strong style="color:#A8C2B5; font-weight:500;">15%</strong> of your remaining
+                discretionary cash to protect you from inflation, sudden medical bills, or real-world price spikes
+                like fuel scarcity or naira volatility.
+                <br/><br/>
+                You won't see it, so you won't spend it.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Calculation preview -->
+        <div class="mb-2">
+          <p class="sans mb-3" style="font-size:11px; color:#9A9A96; letter-spacing:0.14em; text-transform:uppercase;">Your Numbers Preview</p>
+          <div class="space-y-2">
+            <div class="summary-pill">
+              <span class="sans" style="font-size:12px; color:#9A9A96; font-weight:300;">Monthly Income</span>
+              <span class="sans font-medium" style="font-size:13px; color:#F4F4F2;" id="preview-income">₦ —</span>
+            </div>
+            <div class="summary-pill">
+              <span class="sans" style="font-size:12px; color:#9A9A96; font-weight:300;">Fixed Obligations</span>
+              <span class="sans font-medium" style="font-size:13px; color:#F4F4F2;" id="preview-fixed">₦ —</span>
+            </div>
+            <div class="summary-pill" style="border-color: rgba(143,168,155,0.2);">
+              <span class="sans" style="font-size:12px; color:#9A9A96; font-weight:300;">Discretionary Pool</span>
+              <span class="sans font-medium" style="font-size:13px; color:#F4F4F2;" id="preview-discretionary">₦ —</span>
+            </div>
+            <div class="summary-pill" style="background:rgba(143,168,155,0.07); border-color:rgba(143,168,155,0.22);">
+              <div class="flex items-center gap-2">
+                <span class="inline-block w-1 h-1 rounded-full" style="background:#8FA89B;"></span>
+                <span class="sans" style="font-size:12px; color:#8FA89B; font-weight:400;">15% Buffer (hidden)</span>
+              </div>
+              <span class="sans font-semibold" style="font-size:13px; color:#8FA89B;" id="preview-buffer">₦ —</span>
+            </div>
+            <div class="summary-pill" style="background: rgba(168,194,181,0.08); border-color:rgba(168,194,181,0.25);">
+              <span class="sans font-semibold" style="font-size:12px; color:#A8C2B5; letter-spacing:0.1em; text-transform:uppercase;">Est. Daily Limit</span>
+              <span class="sans font-bold" style="font-size:16px; color:#A8C2B5;" id="preview-daily">₦ —</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Days remaining note -->
+        <p class="sans mb-7" style="font-size:11px; color:#4A4A47; line-height:1.5; margin-top: 10px;">
+          Daily limit is calculated over
+          <strong id="preview-days" style="color:#666662;">— days</strong>
+          remaining until your next payday.
+          Recalculates every midnight.
+        </p>
+
+        <!-- Buttons -->
+        <div class="flex gap-3">
+          <button class="btn-ghost" onclick="goToStep(2)">
+            ← Back
+          </button>
+          <button class="btn-activate flex-1" id="activate-btn" onclick="activateGuardrail()">
+            Calculate My Safe-to-Spend Limit
+          </button>
+        </div>
+
+      </div>
+      <!-- END STEPS -->
+
+    </div>
+    <!-- END STEP CONTAINER -->
+
+    <!-- ── BOTTOM TRUST STRIP ─────────────────────────────── -->
+    <div class="flex-shrink-0 px-7 py-3.5 flex items-center justify-center gap-3"
+         style="border-top:1px solid #1F2229;">
+      <svg style="width:11px;height:11px;color:#4A4A47;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+      </svg>
+      <span class="sans" style="font-size:10px; color:#4A4A47; letter-spacing:0.1em; text-transform:uppercase;">
+        End-to-end encrypted. We never store raw financial data.
+      </span>
+    </div>
+
+  </div>
+  <!-- END MODAL CARD -->
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       COMPLETION OVERLAY
+  ═══════════════════════════════════════════════════════ -->
+  <div id="completion-overlay">
+    <!-- Grain on overlay -->
+    <div style="position:absolute;inset:0;pointer-events:none;opacity:0.025;
+                background-image:url('data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\' opacity=\'1\'/%3E%3C/svg%3E');
+                background-size:128px 128px;"></div>
+
+    <!-- Ambient glow -->
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+                width:500px;height:500px;border-radius:50%;pointer-events:none;
+                background:radial-gradient(circle, rgba(143,168,155,0.08) 0%, transparent 65%);"></div>
+
+    <div style="position:relative;z-index:1;text-align:center;padding:24px 20px;max-width:380px;">
+
+      <!-- Animated checkmark -->
+      <div style="width:56px;height:56px;border-radius:50%;background:rgba(143,168,155,0.1);
+                  border:1px solid rgba(143,168,155,0.3);display:flex;align-items:center;
+                  justify-content:center;margin:0 auto 24px;">
+        <svg style="width:22px;height:22px;" fill="none" stroke="#8FA89B" stroke-width="2" viewBox="0 0 24 24"
+             id="completion-check" stroke-dasharray="32" stroke-dashoffset="32">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+
+      <p class="sans" style="font-size:11px; color:#8FA89B; letter-spacing:0.2em; text-transform:uppercase; margin-bottom:10px;">
+        Guardrail Active
+      </p>
+      <h2 class="serif" style="font-size:clamp(1.8rem,5vw,2.4rem); color:#F4F4F2; font-weight:300; line-height:1.12; margin-bottom:12px;">
+        Your limit is ready.<br/>
+        <em style="font-style:italic; color:#A8C2B5;">Stay disciplined.</em>
+      </h2>
+      <p class="sans" style="font-size:13px; color:#9A9A96; line-height:1.65; font-weight:300; margin-bottom:28px; max-width:300px; margin-left:auto; margin-right:auto;">
+        Redirecting you to your live dashboard.
+        Your daily constraint is now active and recalibrating every midnight.
+      </p>
+
+      <!-- Final number reveal -->
+      <div style="background:#1A1D24; border:1px solid rgba(143,168,155,0.18); border-radius:4px; padding:20px 24px;">
+        <p class="sans" style="font-size:10px; color:#666662; letter-spacing:0.18em; text-transform:uppercase; margin-bottom:8px;">
+          Your Safe-to-Spend Limit Today
+        </p>
+        <p class="serif" style="font-size:clamp(2.2rem,7vw,3rem); color:#8FA89B; font-weight:300; line-height:1;" id="final-daily-display">
+          ₦ —
+        </p>
+      </div>
+
+      <p class="sans" style="font-size:11px; color:#4A4A47; margin-top:20px;">
+        Opening dashboard in <span id="countdown">3</span>s…
+      </p>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       JAVASCRIPT
+  ═══════════════════════════════════════════════════════ -->
+  <script>
+    /* ─────────────────────────────────────────────────────
+       STATE
+    ───────────────────────────────────────────────────── */
+    let currentStep = 1;
+
+    const defaultObligations = [
+      { label: 'Rent / Accommodation',   amount: '' },
+      { label: 'Prepaid Meter / Gen Fuel', amount: '' },
+      { label: 'Internet Data',          amount: '' },
+      { label: 'Black Tax (Family Support)', amount: '' },
+    ];
+
+    /* Set default payday to end of current month */
+    (function setDefaultPayday() {
+      const now   = new Date();
+      const year  = now.getFullYear();
+      const month = now.getMonth();
+      const last  = new Date(year, month + 1, 0);
+      const pad   = n => String(n).padStart(2, '0');
+      document.getElementById('s1-payday').value =
+        `${last.getFullYear()}-${pad(last.getMonth()+1)}-${pad(last.getDate())}`;
+    })();
+
+
+    /* ─────────────────────────────────────────────────────
+       OBLIGATION ROWS
+    ───────────────────────────────────────────────────── */
+    let rowCount = 0;
+
+    function addObligationRow(label = '', amount = '') {
+      rowCount++;
+      const id  = `obl-${rowCount}`;
+      const row = document.createElement('div');
+      row.className = 'obligation-row';
+      row.id = id;
+      row.innerHTML = `
+        <div class="row-label">
+          <input
+            type="text"
+            class="field-input"
+            placeholder="e.g. DSTV, Transport"
+            value="${escapeHtml(label)}"
+            oninput="updateTotal()"
+          />
+        </div>
+        <div class="row-amount currency-wrap">
+          <span class="currency-prefix" style="font-size:12px;">₦</span>
+          <input
+            type="number"
+            class="field-input"
+            placeholder="0"
+            value="${amount}"
+            min="0"
+            oninput="updateTotal()"
+            style="padding-left:28px;"
+          />
+        </div>
+        <button class="remove-btn" onclick="removeRow('${id}')" title="Remove">
+          <svg style="width:10px;height:10px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      `;
+      document.getElementById('obligations-list').appendChild(row);
+      updateTotal();
+    }
+
+    function removeRow(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.opacity    = '0';
+      el.style.transform  = 'translateX(-10px)';
+      el.style.transition = 'opacity 0.2s, transform 0.2s';
+      setTimeout(() => { el.remove(); updateTotal(); }, 210);
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function updateTotal() {
+      const amounts = document.querySelectorAll('#obligations-list .row-amount input');
+      let total = 0;
+      amounts.forEach(inp => {
+        const v = parseFloat(inp.value);
+        if (!isNaN(v) && v > 0) total += v;
+      });
+      document.getElementById('total-fixed').textContent =
+        total > 0 ? '₦ ' + formatNaira(total) : '₦ —';
+    }
+
+    function getObligationsTotal() {
+      let total = 0;
+      document.querySelectorAll('#obligations-list .row-amount input').forEach(inp => {
+        const v = parseFloat(inp.value);
+        if (!isNaN(v) && v > 0) total += v;
+      });
+      return total;
+    }
+
+    /* Seed default rows */
+    defaultObligations.forEach(o => addObligationRow(o.label, o.amount));
+
+
+    /* ─────────────────────────────────────────────────────
+       FORMAT HELPERS
+    ───────────────────────────────────────────────────── */
+    function formatNaira(num) {
+      return num.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function daysUntil(dateStr) {
+      if (!dateStr) return 0;
+      const today  = new Date(); today.setHours(0,0,0,0);
+      const target = new Date(dateStr); target.setHours(0,0,0,0);
+      const diff   = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
+      return Math.max(1, diff);
+    }
+
+
+    /* ─────────────────────────────────────────────────────
+       STEP NAVIGATION
+    ───────────────────────────────────────────────────── */
+    function goToStep(n) {
+      /* Validate before advancing */
+      if (n > currentStep) {
+        if (currentStep === 1 && !validateStep1()) return;
+        if (currentStep === 2 && !validateStep2()) return;
+      }
+
+      const from = document.getElementById(`step-${currentStep}`);
+      const to   = document.getElementById(`step-${n}`);
+
+      const forward = n > currentStep;
+
+      /* Exit current */
+      from.classList.remove('active');
+      from.classList.add(forward ? 'exit-left' : 'enter-right');
+
+      setTimeout(() => {
+        from.classList.remove('exit-left', 'enter-right');
+        from.style.display = 'none';
+
+        /* Enter next */
+        to.style.display = 'block';
+        to.style.opacity  = '0';
+        to.style.transform = forward ? 'translateX(18px)' : 'translateX(-18px)';
+
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            to.style.transition = 'opacity 0.38s cubic-bezier(0.22,1,0.36,1), transform 0.38s cubic-bezier(0.22,1,0.36,1)';
+            to.style.opacity    = '1';
+            to.style.transform  = 'none';
+            to.classList.add('active');
+          });
+        });
+      }, 230);
+
+      currentStep = n;
+      updateProgressUI(n);
+      if (n === 3) populateStep3Preview();
+    }
+
+    /* ─────────────────────────────────────────────────────
+       VALIDATORS
+    ───────────────────────────────────────────────────── */
+    function validateStep1() {
+      const income = parseFloat(document.getElementById('s1-income').value);
+      const payday = document.getElementById('s1-payday').value;
+      const err    = document.getElementById('s1-error');
+
+      if (!income || income <= 0 || !payday) {
+        err.classList.remove('hidden');
+        document.getElementById('s1-income').focus();
+        return false;
+      }
+      err.classList.add('hidden');
+      return true;
+    }
+
+    function validateStep2() {
+      const total = getObligationsTotal();
+      const err   = document.getElementById('s2-error');
+
+      if (total <= 0) {
+        err.classList.remove('hidden');
+        return false;
+      }
+      err.classList.add('hidden');
+      return true;
+    }
+
+    /* ─────────────────────────────────────────────────────
+       PROGRESS UI
+    ───────────────────────────────────────────────────── */
+    const progressMap = { 1: '33.3%', 2: '66.6%', 3: '100%' };
+    const stepLabels  = { 1: 'Step 1 of 3', 2: 'Step 2 of 3', 3: 'Step 3 of 3' };
+
+    function updateProgressUI(n) {
+      document.getElementById('progress-fill').style.width = progressMap[n];
+      document.getElementById('step-label').textContent    = stepLabels[n];
+
+      /* Dot states */
+      const activeSageStyle  = 'background:#8FA89B;';
+      const dimStyle         = 'background:#2A2E38;';
+      const activeTextColor  = '#8FA89B';
+      const dimTextColor     = '#666662';
+
+      [1, 2, 3].forEach(i => {
+        const circle = document.getElementById(`dot-${i}-circle`);
+        const label  = document.getElementById(`dot-${i}-label`);
+        if (!circle || !label) return; /* dot-1 has no separate ids — handled below */
+        if (i <= n) {
+          circle.style.cssText = activeSageStyle;
+          label.style.color    = activeTextColor;
+        } else {
+          circle.style.cssText = dimStyle;
+          label.style.color    = dimTextColor;
+        }
+      });
+    }
+
+
+    /* ─────────────────────────────────────────────────────
+       STEP 3 PREVIEW POPULATION
+    ───────────────────────────────────────────────────── */
+    function populateStep3Preview() {
+      const income  = parseFloat(document.getElementById('s1-income').value) || 0;
+      const payday  = document.getElementById('s1-payday').value;
+      const fixed   = getObligationsTotal();
+      const days    = daysUntil(payday);
+
+      const discretionary = Math.max(0, income - fixed);
+      const buffer        = discretionary * 0.15;
+      const spendable     = discretionary - buffer;
+      const daily         = days > 0 ? spendable / days : 0;
+
+      document.getElementById('preview-income').textContent       = '₦ ' + formatNaira(income);
+      document.getElementById('preview-fixed').textContent        = '₦ ' + formatNaira(fixed);
+      document.getElementById('preview-discretionary').textContent = '₦ ' + formatNaira(discretionary);
+      document.getElementById('preview-buffer').textContent       = '₦ ' + formatNaira(buffer);
+      document.getElementById('preview-daily').textContent        = '₦ ' + formatNaira(daily);
+      document.getElementById('preview-days').textContent         = `${days} day${days !== 1 ? 's' : ''}`;
+    }
+
+
+    /* ─────────────────────────────────────────────────────
+       ACTIVATION (STEP 3 CTA)
+    ───────────────────────────────────────────────────── */
+    function activateGuardrail() {
+      const btn = document.getElementById('activate-btn');
+
+      /* Loading state */
+      btn.disabled     = true;
+      btn.innerHTML    = '<span class="spinner"></span>Calculating…';
+
+      /* Simulate async calculation */
+      setTimeout(() => {
+        btn.innerHTML = '<span class="spinner"></span>Encrypting your data…';
+      }, 900);
+
+      setTimeout(() => {
+        btn.innerHTML = '<span class="spinner"></span>Activating guardrail…';
+      }, 1900);
+
+      setTimeout(() => {
+        showCompletion();
+      }, 2900);
+    }
+
+    function showCompletion() {
+      /* Populate final display */
+      const income = parseFloat(document.getElementById('s1-income').value) || 0;
+      const fixed  = getObligationsTotal();
+      const payday = document.getElementById('s1-payday').value;
+      const days   = daysUntil(payday);
+      const disc   = Math.max(0, income - fixed);
+      const daily  = days > 0 ? (disc * 0.85) / days : 0;
+
+      document.getElementById('final-daily-display').textContent = '₦ ' + formatNaira(daily);
+
+      /* Show overlay */
+      const overlay = document.getElementById('completion-overlay');
+      overlay.classList.add('visible');
+
+      /* Animate SVG checkmark */
+      const check = document.getElementById('completion-check');
+      setTimeout(() => {
+        check.style.transition    = 'stroke-dashoffset 0.6s cubic-bezier(0.22,1,0.36,1)';
+        check.style.strokeDashoffset = '0';
+      }, 300);
+
+      /* Countdown */
+      let count = 3;
+      const cd  = document.getElementById('countdown');
+      const tick = setInterval(() => {
+        count--;
+        cd.textContent = count;
+        if (count <= 0) {
+          clearInterval(tick);
+          /* In a real Django app: window.location.href = '/dashboard/'; */
+          cd.closest('p').textContent = 'Dashboard ready.';
+        }
+      }, 1000);
+    }
+  </script>
+</body>
+</html>

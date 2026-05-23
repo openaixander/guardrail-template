@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guardrail — Dashboard</title>
+
+  <!-- ═══ FONTS ═══════════════════════════════════════════ -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- ═══ TAILWIND CDN ════════════════════════════════════ -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['Cormorant Garamond', 'Georgia', 'serif'],
+            sans:  ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            base:        '#121418',
+            surface:     '#1A1D24',
+            raised:      '#20242D',
+            'raised-hi': '#252930',
+            chalk:       '#F4F4F2',
+            'chalk-dim': '#C8C8C5',
+            stone:       '#9A9A96',
+            'stone-dim': '#666662',
+            'stone-deep':'#3D4049',
+            sage:        '#8FA89B',
+            'sage-dim':  '#6B8579',
+            'sage-glow': '#A8C2B5',
+            amber:       '#C9A96E',
+            'amber-dim': '#A68750',
+            line:        '#2A2E38',
+            'line-dim':  '#1F2229',
+            'red-muted': '#B07070',
+            'red-deep':  '#7A4040',
+          },
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* ── Reset ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background-color: #121418;
+      color: #F4F4F2;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    /* ── Grain overlay ──────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='1'/%3E%3C/svg%3E");
+      background-size: 140px 140px;
+    }
+
+    /* ── Navigation glass ───────────────────────────────── */
+    .nav-glass {
+      background: rgba(18, 20, 24, 0.88);
+      backdrop-filter: blur(20px) saturate(1.4);
+      -webkit-backdrop-filter: blur(20px) saturate(1.4);
+      border-bottom: 1px solid #1F2229;
+    }
+
+    /* ── Sage hero glow (the big number) ───────────────── */
+    .sage-glow-text {
+      text-shadow:
+        0 0 40px rgba(143, 168, 155, 0.30),
+        0 0 80px rgba(143, 168, 155, 0.12),
+        0 0 4px  rgba(143, 168, 155, 0.08);
+    }
+    /* Slow breathing pulse on the hero number */
+    @keyframes sage-breathe {
+      0%,100% { text-shadow: 0 0 35px rgba(143,168,155,0.25), 0 0 70px rgba(143,168,155,0.08); }
+      50%      { text-shadow: 0 0 55px rgba(143,168,155,0.42), 0 0 110px rgba(143,168,155,0.16); }
+    }
+    .hero-number { animation: sage-breathe 5s ease-in-out infinite; }
+
+    /* ── Card base ──────────────────────────────────────── */
+    .card {
+      background: #1A1D24;
+      border: 1px solid #2A2E38;
+      border-radius: 6px;
+    }
+    /* Hover lift on interactive cards */
+    .card-lift {
+      transition: border-color 0.22s ease, box-shadow 0.22s ease;
+    }
+    .card-lift:hover {
+      border-color: rgba(143,168,155,0.18);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.28);
+    }
+
+    /* ── Premium input ──────────────────────────────────── */
+    .g-input {
+      width: 100%;
+      background: #20242D;
+      border: 1px solid #2A2E38;
+      border-radius: 3px;
+      color: #F4F4F2;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 13px;
+      font-weight: 400;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color 0.20s, box-shadow 0.20s;
+      -webkit-appearance: none;
+    }
+    .g-input::placeholder { color: #3D4049; }
+    .g-input:focus {
+      border-color: rgba(143,168,155,0.52);
+      box-shadow: 0 0 0 3px rgba(143,168,155,0.08);
+    }
+
+    /* Naira prefix wrapper */
+    .naira-wrap { position: relative; }
+    .naira-sym  {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: #8FA89B;
+      pointer-events: none;
+      user-select: none;
+    }
+    .naira-wrap .g-input { padding-left: 28px; }
+
+    /* Remove number spinners */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    input[type=number] { -moz-appearance: textfield; }
+
+    /* ── Progress bar (cycle ring) ──────────────────────── */
+    .cycle-bar-track {
+      background: #1F2229;
+      border-radius: 9999px;
+      height: 3px;
+      overflow: hidden;
+    }
+    .cycle-bar-fill {
+      height: 100%;
+      border-radius: 9999px;
+      background: linear-gradient(90deg, #6B8579, #8FA89B, #A8C2B5);
+      transition: width 0.6s cubic-bezier(0.22,1,0.36,1);
+    }
+
+    /* ── Spend log: success flash ───────────────────────── */
+    @keyframes logFlash {
+      0%   { opacity:0; transform:translateY(4px); }
+      15%  { opacity:1; transform:none; }
+      80%  { opacity:1; }
+      100% { opacity:0; }
+    }
+    .log-flash {
+      animation: logFlash 2.6s ease forwards;
+    }
+
+    /* ── Transaction row hover ──────────────────────────── */
+    .tx-row {
+      transition: background 0.18s ease;
+    }
+    .tx-row:hover { background: rgba(42,46,56,0.35); }
+
+    /* ── Evaluator result slide-in ──────────────────────── */
+    @keyframes evalIn {
+      from { opacity:0; transform:translateY(6px); }
+      to   { opacity:1; transform:none; }
+    }
+    .eval-result-in { animation: evalIn 0.35s cubic-bezier(0.22,1,0.36,1) both; }
+
+    /* ── Spinner ────────────────────────────────────────── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      display: inline-block;
+      width: 12px; height: 12px;
+      border: 1.8px solid rgba(18,20,24,0.3);
+      border-top-color: #121418;
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    /* ── Scrollbar ──────────────────────────────────────── */
+    ::-webkit-scrollbar       { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: #121418; }
+    ::-webkit-scrollbar-thumb { background: #2A2E38; border-radius: 2px; }
+
+    /* ── Main grid layout ───────────────────────────────── */
+    /*
+       Mobile:  single column
+       Desktop (≥1024px): 3-column grid
+         Col 1 (span 2): Hero + Logger + Activity
+         Col 2 (span 1): Evaluator + Stats sidebar
+    */
+    .dash-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    @media (min-width: 1024px) {
+      .dash-grid {
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 18px;
+      }
+      .col-main  { grid-column: span 2; }
+      .col-aside { grid-column: span 1; }
+    }
+
+    /* ── Vault dot pulse ────────────────────────────────── */
+    @keyframes vaultPulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(143,168,155,0.4); }
+      50%      { box-shadow: 0 0 0 4px rgba(143,168,155,0); }
+    }
+    .vault-dot { animation: vaultPulse 2.4s ease-in-out infinite; }
+
+    /* ── Section divider label ──────────────────────────── */
+    .section-label {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #666662;
+    }
+
+    /* ── Accent top-border on cards ─────────────────────── */
+    .card-sage-top::before {
+      content: '';
+      display: block;
+      height: 1px;
+      width: 100%;
+      background: linear-gradient(90deg, transparent, rgba(143,168,155,0.35), transparent);
+      margin-bottom: 1px;
+      border-radius: 6px 6px 0 0;
+    }
+
+    /* focus-visible ring suppression */
+    button:focus-visible { outline: 2px solid rgba(143,168,155,0.5); outline-offset: 2px; }
+    input:focus-visible  { outline: none; }
+  </style>
+</head>
+
+<!--
+  ═══════════════════════════════════════════════════════
+  BODY
+  ═══════════════════════════════════════════════════════
+-->
+<body class="relative">
+
+  <!-- ═══════════════════════════════════════════════════
+       NAVIGATION BAR
+  ═══════════════════════════════════════════════════ -->
+  <header class="nav-glass sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-5 sm:px-7 h-14 flex items-center justify-between">
+
+      <!-- Left: Wordmark -->
+      <a href="#" class="flex items-center gap-2 group">
+        <span
+          class="block w-1.5 h-1.5 rounded-full bg-sage vault-dot"
+        ></span>
+        <span class="font-serif text-chalk font-light tracking-wide" style="font-size:17px; line-height:1;">
+          guardrail
+        </span>
+      </a>
+
+      <!-- Right: Nav actions -->
+      <div class="flex items-center gap-3 sm:gap-4">
+
+        <!-- Vault & Settings link -->
+        <a
+          href="#"
+          class="font-sans text-stone hover:text-chalk transition-colors duration-200 hidden sm:inline-flex items-center gap-1.5"
+          style="font-size:12px; letter-spacing:0.06em;"
+        >
+          <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <rect x="3" y="11" width="18" height="11" rx="2"/>
+            <path d="M7 11V7a5 5 0 0110 0v4"/>
+          </svg>
+          Vault &amp; Settings
+        </a>
+
+        <!-- Vertical divider (desktop only) -->
+        <span class="hidden sm:block w-px h-4" style="background:#2A2E38;"></span>
+
+        <!-- User avatar/initials -->
+        <div class="flex items-center gap-2.5">
+          <div
+            class="flex items-center justify-center rounded-sm font-sans font-semibold"
+            style="width:30px; height:30px; background:#20242D; border:1px solid #2A2E38; font-size:11px; color:#8FA89B; letter-spacing:0.06em;"
+          >T.A</div>
+          <div class="hidden sm:block">
+            <p class="font-sans font-medium text-chalk" style="font-size:12px; line-height:1.2;">Tunde A.</p>
+            <p class="font-sans text-stone-dim" style="font-size:10px; line-height:1.2;">Free tier</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+
+  <!-- ═══════════════════════════════════════════════════
+       MAIN CONTENT
+  ═══════════════════════════════════════════════════ -->
+  <main class="relative z-10 max-w-6xl mx-auto px-4 sm:px-7 py-6 sm:py-8">
+
+    <!-- Page title row -->
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <p class="section-label mb-1">Dashboard</p>
+        <h1 class="font-serif font-light text-chalk" style="font-size: clamp(1.35rem, 3vw, 1.7rem); line-height:1.15;">
+          Good afternoon, <em class="italic" style="color:#A8C2B5;">Tunde.</em>
+        </h1>
+      </div>
+      <!-- Cycle indicator pill -->
+      <div
+        class="flex items-center gap-2 px-3 py-1.5 rounded-sm"
+        style="background:#1A1D24; border:1px solid #2A2E38;"
+      >
+        <span class="block w-1.5 h-1.5 rounded-full bg-sage" style="animation: sage-breathe 3s ease-in-out infinite;"></span>
+        <span class="font-sans text-stone-dim" style="font-size:11px; letter-spacing:0.10em;">
+          Cycle: May 2026
+        </span>
+      </div>
+    </div>
+
+
+    <!-- ── RESPONSIVE GRID ────────────────────────────── -->
+    <div class="dash-grid">
+
+
+      <!-- ╔══════════════════════════════════════════════╗
+           ║  MAIN COLUMN  (spans 2 on desktop)          ║
+           ╚══════════════════════════════════════════════╝ -->
+      <div class="col-main flex flex-col gap-4 sm:gap-5">
+
+
+        <!-- ┌────────────────────────────────────────────┐
+             │  HERO METRIC CARD                          │
+             └────────────────────────────────────────────┘ -->
+        <div class="card card-lift card-sage-top overflow-hidden">
+
+          <!-- Card inner padding -->
+          <div class="p-6 sm:p-7">
+
+            <!-- Ambient sage glow behind number -->
+            <div class="relative">
+              <div
+                class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                style="width:320px; height:160px; background:radial-gradient(ellipse, rgba(143,168,155,0.07) 0%, transparent 70%); border-radius:50%;"
+              ></div>
+
+              <!-- Top row: label + status badge -->
+              <div class="flex items-center justify-between mb-5 relative z-10">
+                <div>
+                  <p class="section-label mb-1">Safe-to-Spend Limit Today</p>
+                  <div class="flex items-center gap-2">
+                    <span class="block w-1.5 h-1.5 rounded-full bg-sage" style="animation: sage-breathe 3s ease-in-out infinite;"></span>
+                    <span class="font-sans text-stone-dim" style="font-size:11px;">Live · recalculates midnight</span>
+                  </div>
+                </div>
+                <!-- Date badge -->
+                <div
+                  class="font-sans text-stone-dim px-3 py-1.5 rounded-sm"
+                  style="font-size:11px; background:#20242D; border:1px solid #2A2E38;"
+                >Thu, 21 May</div>
+              </div>
+
+              <!-- THE BIG NUMBER -->
+              <div class="text-center py-4 relative z-10">
+                <p
+                  class="font-serif font-light text-sage hero-number leading-none"
+                  style="font-size: clamp(3.8rem, 10vw, 6rem);"
+                  id="hero-amount"
+                >
+                  ₦5,666
+                </p>
+                <p class="font-sans text-stone font-light mt-3" style="font-size:13px;">
+                  <span id="days-left">14</span> days remaining in your billing cycle.
+                </p>
+              </div>
+
+              <!-- Cycle progress bar -->
+              <div class="mt-5 relative z-10">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="section-label">Cycle Progress</span>
+                  <span class="font-sans text-stone-dim" style="font-size:11px;">May 1 → May 31</span>
+                </div>
+                <div class="cycle-bar-track w-full">
+                  <!-- 20/31 days elapsed ≈ 64.5% -->
+                  <div class="cycle-bar-fill" style="width:64.5%;"></div>
+                </div>
+                <div class="flex items-center justify-between mt-2">
+                  <span class="font-sans text-stone-dim" style="font-size:10.5px;">17 days elapsed</span>
+                  <span class="font-sans text-stone-dim" style="font-size:10.5px;">14 days left</span>
+                </div>
+              </div>
+
+              <!-- Mini stats row -->
+              <div
+                class="grid grid-cols-3 gap-0 mt-6 pt-5 relative z-10"
+                style="border-top:1px solid #1F2229;"
+              >
+                <div class="text-center">
+                  <p class="section-label mb-1.5">Monthly Income</p>
+                  <p class="font-sans font-semibold text-chalk" style="font-size:14px;">₦350,000</p>
+                </div>
+                <div class="text-center" style="border-left:1px solid #1F2229; border-right:1px solid #1F2229;">
+                  <p class="section-label mb-1.5">Fixed Costs</p>
+                  <p class="font-sans font-semibold text-chalk" style="font-size:14px;">₦195,600</p>
+                </div>
+                <div class="text-center">
+                  <p class="section-label mb-1.5">Vault Held</p>
+                  <p class="font-sans font-semibold text-sage" style="font-size:14px;">₦23,163</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ── QUICK EXPENSE LOGGER (inside hero card) ── -->
+          <div
+            class="px-6 sm:px-7 py-5"
+            style="border-top:1px solid #1F2229; background:#20242D;"
+          >
+            <p class="section-label mb-3.5">Log Today's Spending</p>
+
+            <div class="flex flex-col sm:flex-row gap-2.5">
+
+              <!-- What did you buy? -->
+              <div class="flex-[2] min-w-0">
+                <input
+                  type="text"
+                  id="log-item"
+                  class="g-input"
+                  placeholder="What did you buy? (e.g. Bolt ride)"
+                  autocomplete="off"
+                  maxlength="60"
+                />
+              </div>
+
+              <!-- Amount -->
+              <div class="flex-1 min-w-0 naira-wrap">
+                <span class="naira-sym">₦</span>
+                <input
+                  type="number"
+                  id="log-amount"
+                  class="g-input"
+                  placeholder="Amount"
+                  min="0"
+                  autocomplete="off"
+                />
+              </div>
+
+              <!-- Log button -->
+              <button
+                onclick="logExpense()"
+                id="log-btn"
+                class="font-sans font-semibold uppercase tracking-widest rounded-sm px-5 py-2.5 flex-shrink-0
+                       transition-all duration-200 whitespace-nowrap"
+                style="font-size:10.5px; letter-spacing:0.15em; background:#F4F4F2; color:#121418;"
+                onmouseover="this.style.background='#C8C8C5';"
+                onmouseout="this.style.background='#F4F4F2';"
+              >
+                Log Expense
+              </button>
+
+            </div>
+
+            <!-- Success / error flash message -->
+            <div id="log-msg" class="hidden mt-2.5">
+              <p id="log-msg-text" class="font-sans" style="font-size:12px; color:#8FA89B;"></p>
+            </div>
+
+          </div>
+          <!-- /QUICK LOGGER -->
+
+        </div>
+        <!-- /HERO CARD -->
+
+
+        <!-- ┌────────────────────────────────────────────┐
+             │  RECENT ACTIVITY (MINI LEDGER)             │
+             └────────────────────────────────────────────┘ -->
+        <div class="card card-lift">
+          <div class="px-5 sm:px-6 pt-5 pb-4">
+
+            <!-- Card header -->
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <p class="section-label mb-1">Recent Activity</p>
+                <p class="font-sans text-stone font-light" style="font-size:13px;">Last 5 transactions logged</p>
+              </div>
+              <button
+                class="font-sans text-stone-dim hover:text-sage transition-colors duration-200"
+                style="font-size:11px; letter-spacing:0.08em; background:none; border:none; cursor:pointer;"
+              >View all →</button>
+            </div>
+
+            <!-- Transactions list -->
+            <div id="tx-list">
+
+              <!-- Each row: category icon · name · date · amount -->
+
+              <!-- Row 1 -->
+              <div class="tx-row flex items-center justify-between rounded-sm px-3 py-3 -mx-3 cursor-default">
+                <div class="flex items-center gap-3">
+                  <!-- Icon blob -->
+                  <div
+                    class="flex-shrink-0 flex items-center justify-center rounded-sm"
+                    style="width:32px; height:32px; background:#252930; border:1px solid #2A2E38;"
+                  >
+                    <!-- Screen icon (streaming) -->
+                    <svg style="width:13px;height:13px;color:#8FA89B;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                      <rect x="2" y="3" width="20" height="14" rx="2"/>
+                      <path d="M8 21h8m-4-4v4"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="font-sans font-medium text-chalk" style="font-size:13px; line-height:1.2;">Netflix Subscription</p>
+                    <p class="font-sans text-stone-dim font-light" style="font-size:11px;">Today, 08:14 AM</p>
+                  </div>
+                </div>
+                <span class="font-sans font-semibold" style="font-size:13px; color:#B07070;">− ₦4,400</span>
+              </div>
+
+              <!-- Divider -->
+              <div style="height:1px; background:#1F2229; margin:0 0;"></div>
+
+              <!-- Row 2 -->
+              <div class="tx-row flex items-center justify-between rounded-sm px-3 py-3 -mx-3 cursor-default">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="flex-shrink-0 flex items-center justify-center rounded-sm"
+                    style="width:32px; height:32px; background:#252930; border:1px solid #2A2E38;"
+                  >
+                    <!-- Fuel icon -->
+                    <svg style="width:13px;height:13px;color:#C9A96E;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M4 6l.01 11A2 2 0 006 19h8a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2zm12 0h1a2 2 0 012 2v4a2 2 0 01-2 2h-1"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 11V8"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="font-sans font-medium text-chalk" style="font-size:13px; line-height:1.2;">Fuel — 10 Litres</p>
+                    <p class="font-sans text-stone-dim font-light" style="font-size:11px;">Yesterday, 5:40 PM</p>
+                  </div>
+                </div>
+                <span class="font-sans font-semibold" style="font-size:13px; color:#B07070;">− ₦8,500</span>
+              </div>
+
+              <div style="height:1px; background:#1F2229;"></div>
+
+              <!-- Row 3 -->
+              <div class="tx-row flex items-center justify-between rounded-sm px-3 py-3 -mx-3 cursor-default">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="flex-shrink-0 flex items-center justify-center rounded-sm"
+                    style="width:32px; height:32px; background:#252930; border:1px solid #2A2E38;"
+                  >
+                    <!-- Wifi icon -->
+                    <svg style="width:13px;height:13px;color:#8FA89B;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                      <path d="M5 12.55a11 11 0 0114.08 0"/>
+                      <path d="M1.42 9a16 16 0 0121.16 0"/>
+                      <path d="M8.53 16.11a6 6 0 016.95 0"/>
+                      <circle cx="12" cy="20" r="1" fill="currentColor"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="font-sans font-medium text-chalk" style="font-size:13px; line-height:1.2;">MTN Data Subscription</p>
+                    <p class="font-sans text-stone-dim font-light" style="font-size:11px;">20 May, 11:02 AM</p>
+                  </div>
+                </div>
+                <span class="font-sans font-semibold" style="font-size:13px; color:#B07070;">− ₦3,000</span>
+              </div>
+
+              <div style="height:1px; background:#1F2229;"></div>
+
+              <!-- Row 4 -->
+              <div class="tx-row flex items-center justify-between rounded-sm px-3 py-3 -mx-3 cursor-default">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="flex-shrink-0 flex items-center justify-center rounded-sm"
+                    style="width:32px; height:32px; background:#252930; border:1px solid #2A2E38;"
+                  >
+                    <!-- Food icon -->
+                    <svg style="width:13px;height:13px;color:#C9A96E;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" d="M18 8h1a4 4 0 010 8h-1"/>
+                      <path stroke-linecap="round" d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/>
+                      <line x1="6" y1="1" x2="6" y2="4"/>
+                      <line x1="10" y1="1" x2="10" y2="4"/>
+                      <line x1="14" y1="1" x2="14" y2="4"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="font-sans font-medium text-chalk" style="font-size:13px; line-height:1.2;">Chicken Republic</p>
+                    <p class="font-sans text-stone-dim font-light" style="font-size:11px;">19 May, 1:15 PM</p>
+                  </div>
+                </div>
+                <span class="font-sans font-semibold" style="font-size:13px; color:#B07070;">− ₦5,200</span>
+              </div>
+
+              <div style="height:1px; background:#1F2229;"></div>
+
+              <!-- Row 5 -->
+              <div class="tx-row flex items-center justify-between rounded-sm px-3 py-3 -mx-3 cursor-default">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="flex-shrink-0 flex items-center justify-center rounded-sm"
+                    style="width:32px; height:32px; background:#252930; border:1px solid #2A2E38;"
+                  >
+                    <!-- Car / ride icon -->
+                    <svg style="width:13px;height:13px;color:#9A9A96;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 17H3a2 2 0 01-2-2V9a2 2 0 012-2l2-4h14l2 4a2 2 0 012 2v6a2 2 0 01-2 2h-2m-4 0a2 2 0 11-4 0"/>
+                      <circle cx="7.5" cy="17" r="1.5" fill="currentColor"/>
+                      <circle cx="16.5" cy="17" r="1.5" fill="currentColor"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="font-sans font-medium text-chalk" style="font-size:13px; line-height:1.2;">Bolt Ride — VI to Lekki</p>
+                    <p class="font-sans text-stone-dim font-light" style="font-size:11px;">19 May, 8:30 AM</p>
+                  </div>
+                </div>
+                <span class="font-sans font-semibold" style="font-size:13px; color:#B07070;">− ₦2,100</span>
+              </div>
+
+            </div>
+            <!-- /tx-list -->
+
+            <!-- Spending total strip -->
+            <div
+              class="flex items-center justify-between mt-4 px-3 py-2.5 rounded-sm"
+              style="background:#20242D; border:1px solid #2A2E38;"
+            >
+              <span class="font-sans text-stone-dim uppercase tracking-widest" style="font-size:9.5px; letter-spacing:0.14em;">
+                5-day spend total
+              </span>
+              <span class="font-sans font-semibold" style="font-size:13.5px; color:#B07070;">₦23,200</span>
+            </div>
+
+          </div>
+        </div>
+        <!-- /ACTIVITY CARD -->
+
+
+      </div>
+      <!-- /MAIN COLUMN -->
+
+
+      <!-- ╔══════════════════════════════════════════════╗
+           ║  ASIDE COLUMN  (right on desktop)           ║
+           ╚══════════════════════════════════════════════╝ -->
+      <div class="col-aside flex flex-col gap-4 sm:gap-5">
+
+
+        <!-- ┌────────────────────────────────────────────┐
+             │  IMPULSE EVALUATOR                         │
+             └────────────────────────────────────────────┘ -->
+        <div class="card card-lift">
+          <div class="p-5 sm:p-6">
+
+            <!-- Card header -->
+            <div class="flex items-start justify-between mb-5">
+              <div>
+                <p class="section-label mb-1.5">Impulse Evaluator</p>
+                <h2
+                  class="font-serif text-chalk font-light leading-tight"
+                  style="font-size: clamp(1.35rem, 3vw, 1.6rem);"
+                >
+                  Is it worth<br/>
+                  <em class="italic" style="color:#A8C2B5;">your time?</em>
+                </h2>
+              </div>
+              <!-- Icon -->
+              <div
+                class="flex-shrink-0 flex items-center justify-center rounded-sm mt-0.5"
+                style="width:34px; height:34px; background:rgba(143,168,155,0.08); border:1px solid rgba(143,168,155,0.18);"
+              >
+                <svg style="width:15px;height:15px;" fill="none" stroke="#8FA89B" stroke-width="1.8" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path stroke-linecap="round" d="M12 8v4l3 3"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Inputs -->
+            <div class="space-y-2.5 mb-4">
+
+              <!-- Item name -->
+              <div>
+                <label
+                  for="eval-item"
+                  class="section-label block mb-1.5"
+                >Item Name</label>
+                <input
+                  type="text"
+                  id="eval-item"
+                  class="g-input"
+                  placeholder="e.g. New Sneakers, iPhone 16"
+                  autocomplete="off"
+                  maxlength="60"
+                />
+              </div>
+
+              <!-- Price -->
+              <div>
+                <label
+                  for="eval-price"
+                  class="section-label block mb-1.5"
+                >Price (₦)</label>
+                <div class="naira-wrap">
+                  <span class="naira-sym">₦</span>
+                  <input
+                    type="number"
+                    id="eval-price"
+                    class="g-input"
+                    placeholder="0"
+                    min="0"
+                    autocomplete="off"
+                  />
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Evaluate button -->
+            <button
+              id="eval-btn"
+              onclick="runEvaluator()"
+              class="w-full font-sans font-semibold uppercase tracking-widest rounded-sm py-3
+                     transition-all duration-200"
+              style="font-size:10.5px; letter-spacing:0.16em; background:rgba(143,168,155,0.12); color:#8FA89B; border:1px solid rgba(143,168,155,0.25);"
+              onmouseover="if(!this.disabled){this.style.background='rgba(143,168,155,0.20)'; this.style.borderColor='rgba(143,168,155,0.45)';}"
+              onmouseout="if(!this.disabled){this.style.background='rgba(143,168,155,0.12)'; this.style.borderColor='rgba(143,168,155,0.25)';}"
+            >
+              Evaluate Purchase
+            </button>
+
+            <!-- Result panel (hidden until JS reveals it) -->
+            <div id="eval-result" class="hidden mt-4">
+              <!-- Content injected by JS -->
+            </div>
+
+          </div>
+        </div>
+        <!-- /EVALUATOR CARD -->
+
+
+        <!-- ┌────────────────────────────────────────────┐
+             │  VAULT STATUS CARD                         │
+             └────────────────────────────────────────────┘ -->
+        <div class="card card-lift">
+          <div class="p-5 sm:p-6">
+
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-5">
+              <div>
+                <p class="section-label mb-1">Emergency Vault</p>
+                <p class="font-sans font-light text-stone" style="font-size:13px;">Your silent 15% buffer</p>
+              </div>
+              <!-- Lock icon -->
+              <div
+                class="flex items-center justify-center rounded-sm"
+                style="width:32px; height:32px; background:rgba(143,168,155,0.08); border:1px solid rgba(143,168,155,0.18);"
+              >
+                <svg style="width:13px;height:13px;" fill="none" stroke="#8FA89B" stroke-width="2" viewBox="0 0 24 24">
+                  <rect x="3" y="11" width="18" height="11" rx="2"/>
+                  <path d="M7 11V7a5 5 0 0110 0v4"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Vault balance -->
+            <div class="mb-4">
+              <p class="section-label mb-2">Vault Balance</p>
+              <p class="font-serif font-light text-sage-glow" style="font-size: clamp(1.8rem, 4vw, 2.3rem); line-height:1;">
+                ₦23,163
+              </p>
+              <p class="font-sans font-light text-stone-dim mt-1" style="font-size:11px;">
+                Locked until 28 May 2026
+              </p>
+            </div>
+
+            <!-- Mini progress: days until unlock -->
+            <div class="mb-5">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="section-label">Days until unlock</span>
+                <span class="font-sans text-stone-dim" style="font-size:11px;">7 days</span>
+              </div>
+              <div class="cycle-bar-track w-full">
+                <!-- 21/28 days = 75% to unlock -->
+                <div class="cycle-bar-fill" style="width:75%;"></div>
+              </div>
+            </div>
+
+            <!-- Vault status badge -->
+            <div
+              class="flex items-center gap-2.5 rounded-sm px-3.5 py-3"
+              style="background:rgba(143,168,155,0.06); border:1px solid rgba(143,168,155,0.18);"
+            >
+              <span class="block w-1.5 h-1.5 rounded-full bg-sage flex-shrink-0"></span>
+              <p class="font-sans text-stone font-light" style="font-size:11.5px; line-height:1.5;">
+                Vault is <strong class="text-sage font-medium">locked</strong>.
+                Accessible in 7 days for genuine emergencies only.
+              </p>
+            </div>
+
+            <!-- Upgrade nudge for free tier -->
+            <div
+              class="flex items-start gap-2.5 rounded-sm px-3.5 py-3 mt-3"
+              style="background:#20242D; border:1px solid #2A2E38;"
+            >
+              <svg class="flex-shrink-0 mt-0.5" style="width:12px;height:12px;color:#C9A96E;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
+              <p class="font-sans text-stone-dim font-light" style="font-size:11px; line-height:1.55;">
+                Upgrade to <strong class="text-amber font-medium">Vault Lock</strong> to hard-lock
+                your buffer and eliminate self-sabotage until month-end.
+              </p>
+            </div>
+
+          </div>
+        </div>
+        <!-- /VAULT CARD -->
+
+
+        <!-- ┌────────────────────────────────────────────┐
+             │  DAILY BUDGET HEALTH CARD                  │
+             └────────────────────────────────────────────┘ -->
+        <div class="card card-lift">
+          <div class="p-5 sm:p-6">
+
+            <p class="section-label mb-4">Today's Budget Health</p>
+
+            <!-- Health meters -->
+            <div class="space-y-4">
+
+              <!-- Spent vs. Limit -->
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="font-sans text-stone font-light" style="font-size:12px;">Spent Today</span>
+                  <span class="font-sans font-medium text-chalk" style="font-size:12px;">₦2,100 / ₦5,666</span>
+                </div>
+                <div class="cycle-bar-track">
+                  <!-- 2100/5666 ≈ 37% -->
+                  <div class="cycle-bar-fill" style="width:37%;"></div>
+                </div>
+              </div>
+
+              <!-- Monthly spendable used -->
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="font-sans text-stone font-light" style="font-size:12px;">Monthly Budget Used</span>
+                  <span class="font-sans font-medium text-chalk" style="font-size:12px;">₦63,417 / ₦130,337</span>
+                </div>
+                <div class="cycle-bar-track">
+                  <!-- 63417/130337 ≈ 48.7% -->
+                  <div class="cycle-bar-fill" style="width:48.7%;"></div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Divider -->
+            <div class="my-4" style="height:1px; background:#1F2229;"></div>
+
+            <!-- Quick stats row -->
+            <div class="grid grid-cols-2 gap-3">
+              <div
+                class="rounded-sm px-3 py-3 text-center"
+                style="background:#20242D; border:1px solid #2A2E38;"
+              >
+                <p class="section-label mb-1">Days Under Limit</p>
+                <p class="font-sans font-semibold text-sage" style="font-size:18px;">12</p>
+              </div>
+              <div
+                class="rounded-sm px-3 py-3 text-center"
+                style="background:#20242D; border:1px solid #2A2E38;"
+              >
+                <p class="section-label mb-1">Days Over</p>
+                <p class="font-sans font-semibold" style="font-size:18px; color:#B07070;">5</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <!-- /HEALTH CARD -->
+
+
+      </div>
+      <!-- /ASIDE COLUMN -->
+
+
+    </div>
+    <!-- /DASH GRID -->
+
+  </main>
+
+
+  <!-- ═══════════════════════════════════════════════════
+       FOOTER STRIP
+  ═══════════════════════════════════════════════════ -->
+  <footer class="relative z-10 max-w-6xl mx-auto px-5 sm:px-7 pb-8 mt-2">
+    <div
+      class="flex flex-col sm:flex-row items-center justify-between gap-2 pt-5"
+      style="border-top:1px solid #1F2229;"
+    >
+      <p class="font-sans text-stone-dim font-light" style="font-size:10.5px;">
+        &copy; 2026 Guardrail Finance · All rights reserved
+      </p>
+      <div class="flex items-center gap-4">
+        <a href="#" class="font-sans text-stone-dim hover:text-stone transition-colors duration-200" style="font-size:10.5px;">Privacy</a>
+        <a href="#" class="font-sans text-stone-dim hover:text-stone transition-colors duration-200" style="font-size:10.5px;">Terms</a>
+        <a href="#" class="font-sans text-stone-dim hover:text-stone transition-colors duration-200" style="font-size:10.5px;">Support</a>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- ═══════════════════════════════════════════════════
+       JAVASCRIPT
+       ────────────────────────────────────────────────
+       Two features:
+         1. Quick Expense Logger  (logExpense)
+         2. Impulse Evaluator     (runEvaluator)
+  ═══════════════════════════════════════════════════ -->
+  <script>
+
+    /* ─────────────────────────────────────────────────────
+       SHARED CONSTANTS
+       The hero daily limit and days left that power both
+       the logger and the evaluator calculations.
+    ───────────────────────────────────────────────────── */
+
+    // Current safe-to-spend limit shown in the hero card (₦)
+    var DAILY_LIMIT = 5666;
+
+    // Days remaining in the billing cycle
+    var DAYS_LEFT = 14;
+
+
+    /* ─────────────────────────────────────────────────────
+       HELPER: Format a number as Nigerian Naira string
+       e.g.  5666   → "5,666.00"
+             420.5  → "420.50"
+    ───────────────────────────────────────────────────── */
+    function fmtNaira(num) {
+      return Number(num).toLocaleString('en-NG', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+
+    /* ─────────────────────────────────────────────────────
+       1. QUICK EXPENSE LOGGER
+       ─────────────────────────────────────────────────
+       When the user clicks "Log Expense":
+         - Validates both fields are filled
+         - Deducts from the daily limit
+         - Updates the hero number
+         - Prepends a new row to the activity ledger
+         - Flashes a confirmation message
+         - Clears the inputs
+    ───────────────────────────────────────────────────── */
+
+    function logExpense() {
+
+      var itemInput   = document.getElementById('log-item');
+      var amtInput    = document.getElementById('log-amount');
+      var msgBox      = document.getElementById('log-msg');
+      var msgText     = document.getElementById('log-msg-text');
+      var btn         = document.getElementById('log-btn');
+
+      var item   = itemInput.value.trim();
+      var amount = parseFloat(amtInput.value);
+
+      // ── Validation ──────────────────────────────────────
+      if (!item || isNaN(amount) || amount <= 0) {
+        // Show amber error
+        msgBox.classList.remove('hidden');
+        msgText.style.color = '#C9A96E';
+        msgText.textContent = 'Please enter both what you bought and the amount.';
+        // Auto-hide after 3s
+        setTimeout(function() { msgBox.classList.add('hidden'); }, 3000);
+        return;
+      }
+
+      // ── Update daily limit ───────────────────────────────
+      // Deduct from the current displayed limit
+      DAILY_LIMIT = Math.max(0, DAILY_LIMIT - amount);
+      document.getElementById('hero-amount').textContent = '₦' + fmtNaira(DAILY_LIMIT);
+
+      // ── Prepend new transaction row to the ledger ────────
+      addTransactionRow(item, amount);
+
+      // ── Success flash ────────────────────────────────────
+      msgBox.classList.remove('hidden');
+      msgText.style.color = '#8FA89B';
+      msgText.textContent = '✓ Logged "' + item + '" for ₦' + fmtNaira(amount) + '. Limit updated.';
+
+      // Apply the flash animation class (remove first to restart it)
+      msgBox.classList.remove('log-flash');
+      void msgBox.offsetHeight; // reflow
+      msgBox.classList.add('log-flash');
+
+      // Hide after animation finishes (2.6s)
+      setTimeout(function() {
+        msgBox.classList.add('hidden');
+        msgBox.classList.remove('log-flash');
+      }, 2700);
+
+      // ── Clear inputs ─────────────────────────────────────
+      itemInput.value = '';
+      amtInput.value  = '';
+      itemInput.focus();
+    }
+
+    /* Prepends a transaction row at the top of the ledger */
+    function addTransactionRow(label, amount) {
+      var list = document.getElementById('tx-list');
+
+      // Build timestamp string: "Today, HH:MM AM/PM"
+      var now    = new Date();
+      var h      = now.getHours();
+      var m      = String(now.getMinutes()).padStart(2, '0');
+      var ampm   = h >= 12 ? 'PM' : 'AM';
+      var h12    = h % 12 || 12;
+      var timeStr = 'Today, ' + h12 + ':' + m + ' ' + ampm;
+
+      // HTML for the new row
+      var rowHtml = '<div class="tx-row flex items-center justify-between rounded-sm px-3 py-3 -mx-3 cursor-default" style="border-bottom:1px solid #1F2229; background:rgba(143,168,155,0.04);">'
+        + '<div class="flex items-center gap-3">'
+          + '<div class="flex-shrink-0 flex items-center justify-center rounded-sm" style="width:32px;height:32px;background:#252930;border:1px solid #2A2E38;">'
+            + '<svg style="width:13px;height:13px;color:#9A9A96;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">'
+              + '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="0.5" fill="currentColor"/>'
+            + '</svg>'
+          + '</div>'
+          + '<div>'
+            + '<p class="font-sans font-medium text-chalk" style="font-size:13px;line-height:1.2;">' + escHtml(label) + '</p>'
+            + '<p class="font-sans text-stone-dim font-light" style="font-size:11px;">' + timeStr + '</p>'
+          + '</div>'
+        + '</div>'
+        + '<span class="font-sans font-semibold" style="font-size:13px;color:#B07070;">− ₦' + fmtNaira(amount) + '</span>'
+      + '</div>';
+
+      // Insert at the very top of the list
+      list.insertAdjacentHTML('afterbegin', rowHtml);
+    }
+
+    /* Allow pressing Enter in the logger inputs to submit */
+    document.getElementById('log-item').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') logExpense();
+    });
+    document.getElementById('log-amount').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') logExpense();
+    });
+
+
+    /* ─────────────────────────────────────────────────────
+       2. IMPULSE EVALUATOR
+       ─────────────────────────────────────────────────
+       When the user clicks "Evaluate Purchase":
+         - Validates both inputs
+         - Simulates a brief 1.2s "thinking" state
+         - Calculates: days consumed = price ÷ daily limit
+         - Calculates: new daily limit if bought
+           (remaining cash after purchase ÷ remaining days)
+         - Renders a result panel with psychological friction
+    ───────────────────────────────────────────────────── */
+
+    function runEvaluator() {
+
+      var itemInput   = document.getElementById('eval-item');
+      var priceInput  = document.getElementById('eval-price');
+      var btn         = document.getElementById('eval-btn');
+      var resultBox   = document.getElementById('eval-result');
+
+      var item  = itemInput.value.trim();
+      var price = parseFloat(priceInput.value);
+
+      // ── Validation ──────────────────────────────────────
+      if (!item || isNaN(price) || price <= 0) {
+        // Flash the inputs with an amber tint
+        [itemInput, priceInput].forEach(function(inp) {
+          inp.style.borderColor = 'rgba(201,169,110,0.55)';
+          setTimeout(function() { inp.style.borderColor = ''; }, 1400);
+        });
+        // Show quick error in result box
+        resultBox.classList.remove('hidden');
+        resultBox.innerHTML =
+          '<p class="font-sans text-amber font-light text-center" style="font-size:12px;">'
+          + 'Please enter both an item name and a price.'
+          + '</p>';
+        return;
+      }
+
+      // ── Loading state ────────────────────────────────────
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Analysing…';
+      btn.style.background    = '#252930';
+      btn.style.color         = '#666662';
+      btn.style.borderColor   = '#2A2E38';
+      btn.style.cursor        = 'not-allowed';
+
+      // Clear old result while thinking
+      resultBox.classList.add('hidden');
+      resultBox.innerHTML = '';
+
+      // ── Simulate a brief calculation delay ───────────────
+      setTimeout(function() {
+
+        // ── Core maths ────────────────────────────────────
+        // How many full days of your limit does this cost?
+        var daysConsumed = price / DAILY_LIMIT;
+        var daysRounded  = Math.round(daysConsumed * 10) / 10;  // 1 decimal
+
+        // If bought today, what's left for the rest of the cycle?
+        // (total remaining cash) - price, spread over (DAYS_LEFT - 1) remaining days
+        var totalRemaining = DAILY_LIMIT * DAYS_LEFT;           // approximate remaining pot
+        var cashAfterBuy   = Math.max(0, totalRemaining - price);
+        var daysAfterBuy   = Math.max(1, DAYS_LEFT - 1);
+        var newDailyLimit  = cashAfterBuy / daysAfterBuy;
+
+        // ── Severity classification ───────────────────────
+        // Used to pick a colour & icon for the result
+        var severity;
+        if (daysConsumed >= 3)       severity = 'high';   // very impactful
+        else if (daysConsumed >= 1)  severity = 'medium'; // noticeable
+        else                         severity = 'low';    // affordable
+
+        // ── Colour tokens per severity ────────────────────
+        var colors = {
+          high:   { border: 'rgba(176,112,112,0.30)', bg: 'rgba(176,112,112,0.06)', badge: '#B07070', label: 'High Impact' },
+          medium: { border: 'rgba(201,169,110,0.30)', bg: 'rgba(201,169,110,0.06)', badge: '#C9A96E', label: 'Noticeable'  },
+          low:    { border: 'rgba(143,168,155,0.30)', bg: 'rgba(143,168,155,0.06)', badge: '#8FA89B', label: 'Manageable'  },
+        };
+        var c = colors[severity];
+
+        // ── Pick a psychological nudge message ────────────
+        // Array of behavioural-friction copy — one chosen at random
+        var nudges = [
+          'That is ' + daysRounded + ' consecutive '
+            + (daysRounded === 1 ? 'day' : 'days')
+            + ' where every meal, Bolt ride, and small comfort is already spoken for.',
+          'You would be borrowing ' + daysRounded + ' '
+            + (daysRounded === 1 ? 'day' : 'days')
+            + ' from your future self to own this today.',
+          'Is '  + item + ' worth ' + daysRounded
+            + (daysRounded === 1 ? ' day' : ' days')
+            + ' of your financial freedom this cycle?',
+          'After this purchase, your next ' + daysAfterBuy
+            + ' days operate on ₦' + fmtNaira(newDailyLimit) + ' each — barely enough for food and transport.',
+        ];
+        var nudge = nudges[Math.floor(Math.random() * nudges.length)];
+
+        // ── Build the result HTML ─────────────────────────
+        var html =
+          '<div class="eval-result-in rounded-sm overflow-hidden" '
+          + 'style="border:1px solid ' + c.border + '; background:' + c.bg + ';">'
+
+            // Top shimmer line
+            + '<div style="height:1px; background:linear-gradient(90deg, transparent, ' + c.badge + '55, transparent);"></div>'
+
+            + '<div class="p-4">'
+
+              // Severity badge + days headline
+              + '<div class="flex items-center justify-between mb-3">'
+                + '<span class="font-sans font-semibold uppercase tracking-widest" '
+                    + 'style="font-size:9.5px; letter-spacing:0.16em; color:' + c.badge + ';">'
+                    + c.label
+                  + '</span>'
+                + '<span class="font-sans font-semibold" '
+                    + 'style="font-size:9.5px; letter-spacing:0.10em; color:' + c.badge + ';">'
+                    + daysRounded + ' day' + (daysRounded === 1 ? '' : 's') + ' of your financial life'
+                  + '</span>'
+              + '</div>'
+
+              // Big days number
+              + '<p class="font-serif font-light leading-tight mb-2" '
+                + 'style="font-size: clamp(1.5rem, 4vw, 2rem);">'
+                + '<span style="color:' + c.badge + ';">' + daysRounded + ' '
+                  + (daysRounded === 1 ? 'day' : 'days') + '</span>'
+                + ' <span class="text-stone" style="font-size:1.1rem;">of your limit.</span>'
+              + '</p>'
+
+              // Impact statement
+              + '<div class="border-l-2 pl-3.5 mb-3" '
+                + 'style="border-color:' + c.badge + '44;">'
+                + '<p class="font-sans text-stone font-light leading-relaxed" style="font-size:12px;">'
+                  + 'If you buy this, your daily limit drops to '
+                  + '<strong style="color:' + c.badge + '; font-weight:600;">₦' + fmtNaira(newDailyLimit) + '</strong>'
+                  + ' for the remaining '
+                  + '<strong style="color:#F4F4F2; font-weight:500;">' + daysAfterBuy + ' days</strong>'
+                  + ' of the month.'
+                + '</p>'
+              + '</div>'
+
+              // Nudge paragraph
+              + '<div class="rounded-sm px-3.5 py-3" style="background:#20242D; border:1px solid #2A2E38;">'
+                + '<p class="font-sans font-light text-stone-dim leading-relaxed" style="font-size:11.5px;">'
+                  + nudge
+                + '</p>'
+              + '</div>'
+
+            + '</div>'
+
+          + '</div>';
+
+        // ── Inject result ─────────────────────────────────
+        resultBox.innerHTML = html;
+        resultBox.classList.remove('hidden');
+
+        // ── Restore button ────────────────────────────────
+        btn.disabled           = false;
+        btn.innerHTML          = 'Re-evaluate';
+        btn.style.background   = 'rgba(143,168,155,0.12)';
+        btn.style.color        = '#8FA89B';
+        btn.style.borderColor  = 'rgba(143,168,155,0.25)';
+        btn.style.cursor       = 'pointer';
+
+      }, 1200); // end setTimeout — simulated 1.2s "thinking" delay
+
+    } // end runEvaluator()
+
+    /* Allow pressing Enter in evaluator inputs to trigger evaluate */
+    document.getElementById('eval-item').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') runEvaluator();
+    });
+    document.getElementById('eval-price').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') runEvaluator();
+    });
+
+
+    /* ─────────────────────────────────────────────────────
+       HELPER: Safely escape HTML special chars before
+       inserting user text into innerHTML
+    ───────────────────────────────────────────────────── */
+    function escHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+  </script>
+
+</body>
+</html>
