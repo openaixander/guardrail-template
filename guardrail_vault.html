@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guardrail — Vault & Settings</title>
+
+  <!-- ═══ FONTS ═══════════════════════════════════════════ -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- ═══ TAILWIND CDN ════════════════════════════════════ -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['Cormorant Garamond', 'Georgia', 'serif'],
+            sans:  ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            base:         '#121418',
+            surface:      '#1A1D24',
+            raised:       '#20242D',
+            'raised-hi':  '#252930',
+            chalk:        '#F4F4F2',
+            'chalk-dim':  '#C8C8C5',
+            stone:        '#9A9A96',
+            'stone-dim':  '#666662',
+            'stone-deep': '#3D4049',
+            sage:         '#8FA89B',
+            'sage-dim':   '#6B8579',
+            'sage-glow':  '#A8C2B5',
+            amber:        '#C9A96E',
+            'amber-dim':  '#A68750',
+            line:         '#2A2E38',
+            'line-dim':   '#1F2229',
+            'red-muted':  '#B07070',
+            'red-deep':   '#7A4040',
+          },
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* ── Reset ───────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background-color: #121418;
+      color: #F4F4F2;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    /* ── Film grain (fixed, pointer-events off) ───────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.026;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+      background-size: 140px 140px;
+    }
+
+    /* ── Nav glass ───────────────────────────────────────── */
+    .nav-glass {
+      background: rgba(18, 20, 24, 0.88);
+      backdrop-filter: blur(20px) saturate(1.4);
+      -webkit-backdrop-filter: blur(20px) saturate(1.4);
+      border-bottom: 1px solid #1F2229;
+    }
+
+    /* ── Shared label style ──────────────────────────────── */
+    .section-label {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #666662;
+    }
+
+    /* ── Card base ───────────────────────────────────────── */
+    .card {
+      background: #1A1D24;
+      border: 1px solid #2A2E38;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid #1F2229;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .card-body { padding: 22px 24px; }
+
+    /* ── Premium input ───────────────────────────────────── */
+    .g-input {
+      width: 100%;
+      background: #20242D;
+      border: 1px solid #2A2E38;
+      border-radius: 3px;
+      color: #F4F4F2;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 13.5px;
+      font-weight: 400;
+      padding: 10px 13px;
+      outline: none;
+      transition: border-color 0.20s ease, box-shadow 0.20s ease;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .g-input::placeholder { color: #3D4049; }
+    .g-input:focus {
+      border-color: rgba(143,168,155,0.52);
+      box-shadow: 0 0 0 3px rgba(143,168,155,0.08);
+    }
+    .g-input:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    /* Naira prefix */
+    .naira-wrap { position: relative; }
+    .naira-sym  {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: #8FA89B;
+      pointer-events: none;
+      user-select: none;
+    }
+    .naira-wrap .g-input { padding-left: 30px; }
+
+    /* Remove number spinners */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    input[type=number] { -moz-appearance: textfield; }
+
+    /* Range input override */
+    input[type=range] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 3px;
+      background: #2A2E38;
+      border-radius: 9999px;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #8FA89B;
+      cursor: pointer;
+      border: 2px solid #1A1D24;
+      box-shadow: 0 0 0 1px rgba(143,168,155,0.3);
+      transition: box-shadow 0.18s ease;
+    }
+    input[type=range]::-webkit-slider-thumb:hover {
+      box-shadow: 0 0 0 4px rgba(143,168,155,0.18);
+    }
+    input[type=range]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #8FA89B;
+      cursor: pointer;
+      border: 2px solid #1A1D24;
+    }
+
+    /* Date input calendar icon */
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(55%) sepia(20%) saturate(400%) hue-rotate(110deg);
+      opacity: 0.65;
+      cursor: pointer;
+    }
+
+    /* ── Obligation rows ─────────────────────────────────── */
+    @keyframes oblRowIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: none; }
+    }
+    .obl-row { animation: oblRowIn 0.25s cubic-bezier(0.22,1,0.36,1) both; }
+    .obl-row-exiting {
+      transition: opacity 0.20s ease, transform 0.20s ease;
+      opacity: 0 !important;
+      transform: translateX(-10px) !important;
+    }
+
+    /* ── Responsive 2-column grid ────────────────────────── */
+    .settings-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+    @media (min-width: 900px) {
+      .settings-grid {
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+      }
+    }
+
+    /* ── Vault glow number ───────────────────────────────── */
+    @keyframes vaultBreathe {
+      0%,100% { text-shadow: 0 0 30px rgba(143,168,155,0.22), 0 0 60px rgba(143,168,155,0.07); }
+      50%      { text-shadow: 0 0 50px rgba(143,168,155,0.38), 0 0 100px rgba(143,168,155,0.14); }
+    }
+    .vault-number { animation: vaultBreathe 4.5s ease-in-out infinite; }
+
+    /* ── Vault dot pulse ─────────────────────────────────── */
+    @keyframes dotPulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(143,168,155,0.5); }
+      50%      { box-shadow: 0 0 0 5px rgba(143,168,155,0); }
+    }
+    .vault-dot { animation: dotPulse 2.4s ease-in-out infinite; }
+
+    /* ── Vault lock card shimmer border ─────────────────── */
+    .vault-lock-card {
+      position: relative;
+      border-radius: 4px;
+    }
+    .vault-lock-card::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: 5px;
+      background: linear-gradient(
+        135deg,
+        rgba(143,168,155,0.32),
+        rgba(42,46,56,0.15),
+        rgba(143,168,155,0.10)
+      );
+      pointer-events: none;
+      z-index: 0;
+      transition: opacity 0.4s ease;
+    }
+    /* When locked, shimmer turns amber */
+    .vault-lock-card.is-locked::before {
+      background: linear-gradient(
+        135deg,
+        rgba(201,169,110,0.38),
+        rgba(42,46,56,0.15),
+        rgba(201,169,110,0.12)
+      );
+    }
+    .vault-lock-inner {
+      position: relative;
+      z-index: 1;
+      border-radius: 4px;
+      background: rgba(143,168,155,0.05);
+      padding: 20px;
+      transition: background 0.4s ease;
+    }
+    .vault-lock-card.is-locked .vault-lock-inner {
+      background: rgba(201,169,110,0.05);
+    }
+
+    /* ── Lock button ─────────────────────────────────────── */
+    .btn-lock {
+      width: 100%;
+      background: #8FA89B;
+      color: #121418;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 3px;
+      padding: 13px 20px;
+      cursor: pointer;
+      transition: background 0.22s ease, box-shadow 0.22s ease, transform 0.12s ease;
+    }
+    .btn-lock:hover:not(:disabled) {
+      background: #A8C2B5;
+      box-shadow:
+        0 0 0 1px rgba(143,168,155,0.35),
+        0 6px 24px rgba(143,168,155,0.20);
+      transform: translateY(-1px);
+    }
+    .btn-lock:active:not(:disabled) { transform: none; }
+    .btn-lock:disabled {
+      background: #252930;
+      color: #666662;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+      border: 1px solid #2A2E38;
+    }
+
+    /* ── Save settings button ────────────────────────────── */
+    .btn-save {
+      background: #F4F4F2;
+      color: #121418;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.17em;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 3px;
+      padding: 11px 22px;
+      cursor: pointer;
+      transition: background 0.20s ease, transform 0.12s ease;
+      white-space: nowrap;
+    }
+    .btn-save:hover  { background: #C8C8C5; }
+    .btn-save:active { transform: scale(0.98); }
+
+    /* ── Danger Zone ─────────────────────────────────────── */
+    .danger-zone {
+      border: 1px solid rgba(176,112,112,0.22);
+      border-radius: 6px;
+      overflow: hidden;
+      background: rgba(176,112,112,0.03);
+    }
+
+    /* ── Spinner ─────────────────────────────────────────── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      display: inline-block;
+      width: 13px; height: 13px;
+      border: 1.8px solid rgba(18,20,24,0.3);
+      border-top-color: #121418;
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+      vertical-align: middle;
+      margin-right: 7px;
+    }
+
+    /* ── Amber locked spinner variant ─────────────────────── */
+    .spinner-amber {
+      display: inline-block;
+      width: 13px; height: 13px;
+      border: 1.8px solid rgba(201,169,110,0.2);
+      border-top-color: #C9A96E;
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+      vertical-align: middle;
+      margin-right: 7px;
+    }
+
+    /* ── Remove row button ───────────────────────────────── */
+    .remove-btn {
+      flex-shrink: 0;
+      width: 26px; height: 26px;
+      border-radius: 3px;
+      border: 1px solid #2A2E38;
+      background: transparent;
+      color: #666662;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.18s, color 0.18s, background 0.18s;
+    }
+    .remove-btn:hover {
+      border-color: rgba(176,112,112,0.45);
+      color: #B07070;
+      background: rgba(176,112,112,0.06);
+    }
+
+    /* ── Save toast ──────────────────────────────────────── */
+    @keyframes toastIn {
+      from { opacity:0; transform:translateY(8px); }
+      to   { opacity:1; transform:none; }
+    }
+    @keyframes toastOut {
+      from { opacity:1; }
+      to   { opacity:0; }
+    }
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 999;
+      background: #1A1D24;
+      border: 1px solid rgba(143,168,155,0.30);
+      border-radius: 4px;
+      padding: 11px 20px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 12.5px;
+      color: #8FA89B;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.45);
+      animation: toastIn 0.30s cubic-bezier(0.22,1,0.36,1) both;
+      white-space: nowrap;
+    }
+    .toast.hiding { animation: toastOut 0.30s ease forwards; }
+
+    /* ── Cycle progress bar ──────────────────────────────── */
+    .cyc-bar-track {
+      height: 2px;
+      background: #1F2229;
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+    .cyc-bar-fill {
+      height: 100%;
+      border-radius: 9999px;
+      background: linear-gradient(90deg, #6B8579, #8FA89B, #A8C2B5);
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar       { width: 4px; }
+    ::-webkit-scrollbar-track { background: #121418; }
+    ::-webkit-scrollbar-thumb { background: #2A2E38; border-radius: 2px; }
+
+    /* Focus visible */
+    button:focus-visible { outline: 2px solid rgba(143,168,155,0.5); outline-offset: 2px; }
+    input:focus-visible  { outline: none; }
+  </style>
+</head>
+
+<body class="relative">
+
+  <!-- ═══════════════════════════════════════════════════════
+       NAVIGATION BAR
+  ═══════════════════════════════════════════════════════ -->
+  <header class="nav-glass sticky top-0 z-40">
+    <div class="max-w-5xl mx-auto px-5 sm:px-7 h-14 flex items-center justify-between">
+
+      <!-- Left: Wordmark -->
+      <a href="#" class="flex items-center gap-2">
+        <span class="block w-1.5 h-1.5 rounded-full bg-sage vault-dot"></span>
+        <span class="font-serif text-chalk font-light tracking-wide" style="font-size:17px;line-height:1;">
+          guardrail
+        </span>
+      </a>
+
+      <!-- Right: nav links -->
+      <div class="flex items-center gap-4 sm:gap-5">
+
+        <!-- Back to Dashboard -->
+        <a
+          href="#"
+          class="font-sans text-stone hover:text-chalk transition-colors duration-200 flex items-center gap-1.5"
+          style="font-size:12px;"
+        >
+          <svg style="width:11px;height:11px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+          </svg>
+          <span class="hidden sm:inline">Back to Dashboard</span>
+          <span class="sm:hidden">Dashboard</span>
+        </a>
+
+        <!-- Vertical divider -->
+        <span class="block w-px h-4" style="background:#2A2E38;"></span>
+
+        <!-- User avatar -->
+        <div class="flex items-center gap-2.5">
+          <div
+            class="flex items-center justify-center rounded-sm font-sans font-semibold"
+            style="width:30px;height:30px;background:#20242D;border:1px solid #2A2E38;font-size:11px;color:#8FA89B;"
+          >T.A</div>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       MAIN CONTENT
+  ═══════════════════════════════════════════════════════ -->
+  <main class="relative z-10 max-w-5xl mx-auto px-4 sm:px-7 py-7 sm:py-9">
+
+    <!-- Page heading row -->
+    <div class="flex items-start justify-between gap-4 mb-7">
+      <div>
+        <p class="section-label mb-2">Configuration</p>
+        <h1 class="font-serif text-chalk font-light leading-tight" style="font-size:clamp(1.6rem,3.5vw,2.2rem);">
+          Vault &amp;&nbsp;<em class="italic" style="color:#A8C2B5;">Settings</em>
+        </h1>
+        <p class="font-sans text-stone font-light mt-2" style="font-size:13px;">
+          Adjust your income, obligations, and vault behaviour. Changes recalculate your daily limit instantly.
+        </p>
+      </div>
+
+      <!-- Last saved badge -->
+      <div
+        class="flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-sm mt-1"
+        style="background:#1A1D24;border:1px solid #2A2E38;"
+      >
+        <span class="block w-1 h-1 rounded-full bg-sage-dim"></span>
+        <span class="font-sans text-stone-dim" style="font-size:10.5px;letter-spacing:0.08em;">
+          Saved · May 21
+        </span>
+      </div>
+    </div>
+
+
+    <!-- ── 2-COLUMN SETTINGS GRID ──────────────────────── -->
+    <div class="settings-grid">
+
+
+      <!-- ╔══════════════════════════════════════════════════╗
+           ║  COLUMN 1 — Financial Configuration             ║
+           ╚══════════════════════════════════════════════════╝ -->
+      <div class="flex flex-col gap-5">
+
+
+        <!-- ┌──────────────────────────────────────────────┐
+             │  CARD 1 — Income & Cycle                     │
+             └──────────────────────────────────────────────┘ -->
+        <div class="card">
+
+          <div class="card-header">
+            <div>
+              <p class="section-label mb-1.5">Card 1 of 4</p>
+              <h2 class="font-serif text-chalk font-light" style="font-size:clamp(1.2rem,2.5vw,1.5rem);line-height:1.15;">
+                Income &amp; Cycle
+              </h2>
+              <p class="font-sans text-stone font-light mt-1" style="font-size:12.5px;">
+                The foundation of every calculation.
+              </p>
+            </div>
+            <!-- Calendar icon -->
+            <div
+              class="flex-shrink-0 flex items-center justify-center rounded-sm mt-0.5"
+              style="width:34px;height:34px;background:#20242D;border:1px solid #2A2E38;"
+            >
+              <svg style="width:14px;height:14px;color:#8FA89B;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8"  y1="2" x2="8"  y2="6"/>
+                <line x1="3"  y1="10" x2="21" y2="10"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="card-body">
+
+            <!-- Net Monthly Income -->
+            <div class="mb-5">
+              <label for="income" class="section-label block mb-1.5">Net Monthly Income</label>
+              <div class="naira-wrap">
+                <span class="naira-sym">₦</span>
+                <input
+                  type="number"
+                  id="income"
+                  class="g-input"
+                  value="350000"
+                  min="0"
+                  placeholder="e.g. 350,000"
+                  autocomplete="off"
+                />
+              </div>
+              <p class="font-sans text-stone-dim font-light mt-1.5" style="font-size:11px;">
+                Your take-home after tax, pension, and any deductions.
+              </p>
+            </div>
+
+            <!-- Next Payday -->
+            <div class="mb-6">
+              <label for="payday" class="section-label block mb-1.5">Next Payday</label>
+              <input
+                type="date"
+                id="payday"
+                class="g-input"
+                value="2026-05-28"
+              />
+              <p class="font-sans text-stone-dim font-light mt-1.5" style="font-size:11px;">
+                Guardrail divides your spendable balance by days remaining to this date.
+              </p>
+            </div>
+
+            <!-- Cycle progress preview -->
+            <div class="mb-6 p-4 rounded-sm" style="background:#20242D;border:1px solid #2A2E38;">
+              <div class="flex items-center justify-between mb-2">
+                <span class="section-label">Current Cycle</span>
+                <span class="font-sans text-stone-dim" style="font-size:11px;">May 1 → May 28</span>
+              </div>
+              <div class="cyc-bar-track mb-2">
+                <!-- 21/28 days elapsed = 75% -->
+                <div class="cyc-bar-fill" style="width:75%;"></div>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="font-sans text-stone-dim" style="font-size:10.5px;">21 days elapsed</span>
+                <span class="font-sans text-stone-dim" style="font-size:10.5px;">7 days remaining</span>
+              </div>
+            </div>
+
+            <!-- Save button -->
+            <div class="flex items-center justify-end gap-3">
+              <p class="font-sans text-stone-dim font-light" style="font-size:11px;">Changes recalculate your daily limit.</p>
+              <button class="btn-save" onclick="saveSettings('income-cycle')">
+                Save Changes
+              </button>
+            </div>
+
+          </div>
+        </div>
+        <!-- /CARD 1 -->
+
+
+        <!-- ┌──────────────────────────────────────────────┐
+             │  CARD 2 — Fixed Obligations                  │
+             └──────────────────────────────────────────────┘ -->
+        <div class="card">
+
+          <div class="card-header">
+            <div>
+              <p class="section-label mb-1.5">Card 2 of 4</p>
+              <h2 class="font-serif text-chalk font-light" style="font-size:clamp(1.2rem,2.5vw,1.5rem);line-height:1.15;">
+                Fixed Obligations
+              </h2>
+              <p class="font-sans text-stone font-light mt-1" style="font-size:12.5px;">
+                Money that isn't really yours. Subtract it first.
+              </p>
+            </div>
+            <!-- Lock icon -->
+            <div
+              class="flex-shrink-0 flex items-center justify-center rounded-sm mt-0.5"
+              style="width:34px;height:34px;background:#20242D;border:1px solid #2A2E38;"
+            >
+              <svg style="width:14px;height:14px;color:#8FA89B;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <rect x="3" y="11" width="18" height="11" rx="2"/>
+                <path d="M7 11V7a5 5 0 0110 0v4"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="card-body">
+
+            <!-- Column header -->
+            <div class="flex items-center gap-2 mb-3" style="padding-right:34px;">
+              <span class="section-label flex-[2] min-w-0">Expense</span>
+              <span class="section-label flex-1 min-w-0">Monthly (₦)</span>
+            </div>
+
+            <!-- Dynamic obligations list -->
+            <div id="obl-list" class="space-y-2.5 mb-4">
+              <!-- Rows injected on init -->
+            </div>
+
+            <!-- Add obligation button -->
+            <button
+              onclick="addObligation('', '')"
+              class="flex items-center gap-2 mb-6 group"
+              style="background:none;border:none;cursor:pointer;padding:2px 0;"
+            >
+              <span
+                class="flex items-center justify-center rounded-sm transition-all duration-200 group-hover:border-sage-dim"
+                style="width:22px;height:22px;border:1px dashed #2A2E38;flex-shrink:0;"
+              >
+                <svg style="width:10px;height:10px;color:#666662;" class="group-hover:text-sage transition-colors duration-200" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+              </span>
+              <span
+                class="font-sans text-stone-dim group-hover:text-sage transition-colors duration-200"
+                style="font-size:12px;letter-spacing:0.06em;"
+              >+ Add Obligation</span>
+            </button>
+
+            <!-- Running total strip -->
+            <div
+              class="flex items-center justify-between rounded-sm px-4 py-3 mb-5"
+              style="background:#20242D;border:1px solid #2A2E38;"
+            >
+              <span class="section-label">Total Fixed Monthly</span>
+              <span id="obl-total" class="font-sans font-semibold text-chalk" style="font-size:14px;">₦ —</span>
+            </div>
+
+            <!-- Net discretionary preview -->
+            <div
+              class="flex items-center justify-between rounded-sm px-4 py-3 mb-5"
+              style="background:rgba(143,168,155,0.06);border:1px solid rgba(143,168,155,0.18);"
+            >
+              <div>
+                <span class="section-label text-sage" style="color:#8FA89B;">Discretionary Pool</span>
+                <p class="font-sans text-stone-dim font-light mt-0.5" style="font-size:10.5px;">Income minus fixed costs</p>
+              </div>
+              <span id="obl-discretionary" class="font-sans font-semibold text-sage" style="font-size:14px;">₦ —</span>
+            </div>
+
+            <!-- Save button -->
+            <div class="flex items-center justify-end">
+              <button class="btn-save" onclick="saveSettings('obligations')">
+                Save Obligations
+              </button>
+            </div>
+
+          </div>
+        </div>
+        <!-- /CARD 2 -->
+
+
+      </div>
+      <!-- /COLUMN 1 -->
+
+
+      <!-- ╔══════════════════════════════════════════════════╗
+           ║  COLUMN 2 — Vault + Danger Zone                 ║
+           ╚══════════════════════════════════════════════════╝ -->
+      <div class="flex flex-col gap-5">
+
+
+        <!-- ┌──────────────────────────────────────────────┐
+             │  CARD 3 — Vault Status                       │
+             └──────────────────────────────────────────────┘ -->
+        <div class="card" style="position:relative;overflow:visible;">
+
+          <!-- Top shimmer accent line -->
+          <div
+            style="height:1px;background:linear-gradient(90deg,transparent,rgba(143,168,155,0.40),transparent);border-radius:6px 6px 0 0;"
+          ></div>
+
+          <div class="card-header" style="border-bottom:1px solid #1F2229;">
+            <div>
+              <p class="section-label mb-1.5">Card 3 of 4</p>
+              <h2 class="font-serif text-chalk font-light" style="font-size:clamp(1.2rem,2.5vw,1.5rem);line-height:1.15;">
+                Emergency Vault
+              </h2>
+              <p class="font-sans text-stone font-light mt-1" style="font-size:12.5px;">
+                Your silent 15% inflation buffer — hidden from your daily view.
+              </p>
+            </div>
+            <!-- Shield icon -->
+            <div
+              class="flex-shrink-0 flex items-center justify-center rounded-sm mt-0.5"
+              style="width:34px;height:34px;background:rgba(143,168,155,0.10);border:1px solid rgba(143,168,155,0.22);"
+            >
+              <svg style="width:14px;height:14px;" fill="none" stroke="#8FA89B" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6
+                     11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623
+                     5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152
+                     c-3.196 0-6.1-1.248-8.25-3.285z"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="card-body">
+
+            <!-- ── Vault balance display ──────────────────── -->
+            <div class="text-center mb-6 pb-6" style="border-bottom:1px solid #1F2229;">
+
+              <!-- Live indicator -->
+              <div class="flex items-center justify-center gap-2 mb-3">
+                <span class="block w-1.5 h-1.5 rounded-full bg-sage vault-dot"></span>
+                <span class="section-label" style="color:#8FA89B;">Vault Balance</span>
+              </div>
+
+              <!-- THE BIG NUMBER -->
+              <p
+                id="vault-balance-display"
+                class="font-serif font-light text-sage vault-number leading-none"
+                style="font-size:clamp(3rem,7vw,4.2rem);"
+              >₦23,163</p>
+
+              <p class="font-sans text-stone-dim font-light mt-3" style="font-size:12px;">
+                Automatically accrued this cycle · Not visible on dashboard
+              </p>
+
+              <!-- Buffer breakdown strip -->
+              <div class="grid grid-cols-3 gap-0 mt-5 pt-4" style="border-top:1px solid #1F2229;">
+                <div class="text-center">
+                  <p class="section-label mb-1.5">Buffer Rate</p>
+                  <p
+                    class="font-sans font-semibold text-sage"
+                    id="buffer-rate-display"
+                    style="font-size:15px;"
+                  >15%</p>
+                </div>
+                <div class="text-center" style="border-left:1px solid #1F2229;border-right:1px solid #1F2229;">
+                  <p class="section-label mb-1.5">Monthly Skim</p>
+                  <p class="font-sans font-semibold text-chalk" style="font-size:15px;">₦23,163</p>
+                </div>
+                <div class="text-center">
+                  <p class="section-label mb-1.5">Status</p>
+                  <p id="vault-status-mini" class="font-sans font-semibold text-sage" style="font-size:15px;">Open</p>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- ── VAULT LOCK MODULE ──────────────────────── -->
+            <div class="vault-lock-card" id="vault-lock-card">
+              <div class="vault-lock-inner">
+
+                <!-- Lock module header -->
+                <div class="flex items-start gap-3 mb-4">
+                  <div
+                    id="lock-icon-wrap"
+                    class="flex-shrink-0 flex items-center justify-center rounded-sm"
+                    style="width:30px;height:30px;background:rgba(143,168,155,0.10);border:1px solid rgba(143,168,155,0.20);"
+                  >
+                    <!-- Open lock icon (default) -->
+                    <svg id="icon-unlocked" style="width:13px;height:13px;" fill="none" stroke="#8FA89B" stroke-width="2" viewBox="0 0 24 24">
+                      <rect x="3" y="11" width="18" height="11" rx="2"/>
+                      <path d="M7 11V7a5 5 0 019.9-1"/>
+                    </svg>
+                    <!-- Locked icon (hidden until locked) -->
+                    <svg id="icon-locked" style="width:13px;height:13px;display:none;" fill="none" stroke="#C9A96E" stroke-width="2" viewBox="0 0 24 24">
+                      <rect x="3" y="11" width="18" height="11" rx="2"/>
+                      <path d="M7 11V7a5 5 0 0110 0v4"/>
+                    </svg>
+                  </div>
+
+                  <div class="flex-1">
+                    <p
+                      id="lock-module-label"
+                      class="font-sans font-semibold uppercase tracking-widest"
+                      style="font-size:10px;letter-spacing:0.16em;color:#8FA89B;margin-bottom:4px;"
+                    >Emergency Vault Lock</p>
+                    <p
+                      id="lock-module-desc"
+                      class="font-sans text-stone font-light leading-relaxed"
+                      style="font-size:12.5px;"
+                    >
+                      Lock this balance until the final 3 days of your cycle to
+                      completely eliminate self-sabotage. You will not be able to
+                      reverse this action until 28 May 2026.
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Amber warning badge (hidden until locked) -->
+                <div
+                  id="locked-badge"
+                  class="hidden flex items-center gap-2.5 rounded-sm px-3.5 py-2.5 mb-4"
+                  style="background:rgba(201,169,110,0.08);border:1px solid rgba(201,169,110,0.28);"
+                >
+                  <svg style="width:12px;height:12px;flex-shrink:0;" fill="none" stroke="#C9A96E" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+                  </svg>
+                  <p class="font-sans font-semibold" style="font-size:11.5px;color:#C9A96E;letter-spacing:0.04em;">
+                    Strict Lock Active. Cannot be reversed.
+                  </p>
+                </div>
+
+                <!-- Countdown display (hidden until locked) -->
+                <div
+                  id="locked-countdown"
+                  class="hidden rounded-sm px-4 py-3 mb-4"
+                  style="background:#20242D;border:1px solid #2A2E38;"
+                >
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="section-label mb-1" style="color:#C9A96E;">Vault Locked Until</p>
+                      <p class="font-sans font-semibold text-chalk" style="font-size:14px;">28 May 2026</p>
+                    </div>
+                    <div class="text-right">
+                      <p class="section-label mb-1">Access In</p>
+                      <p class="font-sans font-semibold" style="font-size:14px;color:#C9A96E;">7 days</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- What-you-get features list (hidden when locked) -->
+                <div id="lock-features-list" class="space-y-2 mb-4">
+                  <div class="flex items-start gap-2.5">
+                    <span class="block w-1 h-1 rounded-full bg-sage flex-shrink-0 mt-1.5"></span>
+                    <span class="font-sans text-stone font-light" style="font-size:12px;">Vault balance hidden from your dashboard entirely</span>
+                  </div>
+                  <div class="flex items-start gap-2.5">
+                    <span class="block w-1 h-1 rounded-full bg-sage flex-shrink-0 mt-1.5"></span>
+                    <span class="font-sans text-stone font-light" style="font-size:12px;">All withdrawals mathematically disabled until day 25–28</span>
+                  </div>
+                  <div class="flex items-start gap-2.5">
+                    <span class="block w-1 h-1 rounded-full bg-sage flex-shrink-0 mt-1.5"></span>
+                    <span class="font-sans text-stone font-light" style="font-size:12px;">Unlocks automatically — no action needed at month-end</span>
+                  </div>
+                </div>
+
+                <!-- THE LOCK BUTTON -->
+                <button
+                  id="lock-btn"
+                  class="btn-lock"
+                  onclick="lockVault()"
+                >
+                  Lock Vault Until 28 May
+                </button>
+
+              </div>
+            </div>
+            <!-- /VAULT LOCK MODULE -->
+
+          </div>
+        </div>
+        <!-- /CARD 3 -->
+
+
+        <!-- ┌──────────────────────────────────────────────┐
+             │  CARD 4 — Danger Zone                        │
+             └──────────────────────────────────────────────┘ -->
+        <div class="danger-zone">
+
+          <!-- Card header -->
+          <div
+            class="flex items-center gap-3 px-5 pt-5 pb-4"
+            style="border-bottom:1px solid rgba(176,112,112,0.14);"
+          >
+            <svg style="width:14px;height:14px;flex-shrink:0;" fill="none" stroke="#B07070" stroke-width="1.8" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+            </svg>
+            <div>
+              <h2 class="font-serif text-chalk font-light" style="font-size:clamp(1.1rem,2.5vw,1.35rem);line-height:1.2;">
+                Danger Zone
+              </h2>
+              <p class="font-sans font-light" style="font-size:11.5px;color:#B07070;margin-top:2px;">
+                Proceed with caution. These settings reduce your financial protection.
+              </p>
+            </div>
+          </div>
+
+          <div class="px-5 py-5">
+
+            <!-- Buffer Percentage Setting -->
+            <div class="mb-6">
+              <div class="flex items-center justify-between mb-3">
+                <div>
+                  <label class="section-label block mb-1" style="color:#B07070;">Buffer Percentage</label>
+                  <p class="font-sans text-stone-dim font-light" style="font-size:11.5px;">
+                    Default is 15%. This controls how much Guardrail silently protects.
+                  </p>
+                </div>
+                <!-- Live value readout -->
+                <div
+                  class="flex-shrink-0 flex items-center justify-center rounded-sm px-3 py-2 ml-4"
+                  style="background:#20242D;border:1px solid #2A2E38;min-width:52px;"
+                >
+                  <span
+                    id="buffer-pct-display"
+                    class="font-sans font-semibold text-chalk"
+                    style="font-size:15px;"
+                  >15%</span>
+                </div>
+              </div>
+
+              <!-- Range slider -->
+              <input
+                type="range"
+                id="buffer-pct"
+                min="5"
+                max="30"
+                value="15"
+                step="1"
+                oninput="updateBufferPct(this.value)"
+              />
+
+              <!-- Min/max labels -->
+              <div class="flex items-center justify-between mt-1.5">
+                <span class="font-sans text-stone-deep" style="font-size:10px;">5% (Minimal)</span>
+                <span class="font-sans text-stone-deep" style="font-size:10px;">30% (Aggressive)</span>
+              </div>
+
+              <!-- Warning callout — only shows if below 15% -->
+              <div
+                id="buffer-warning"
+                class="hidden mt-3 flex items-start gap-2.5 rounded-sm px-3.5 py-3"
+                style="background:rgba(176,112,112,0.06);border:1px solid rgba(176,112,112,0.22);"
+              >
+                <svg style="width:12px;height:12px;flex-shrink:0;margin-top:2px;" fill="none" stroke="#B07070" stroke-width="2" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <circle cx="12" cy="16" r="0.5" fill="#B07070"/>
+                </svg>
+                <p class="font-sans font-light" style="font-size:11.5px;color:#B07070;line-height:1.55;">
+                  <strong class="font-semibold">Lowering this reduces your protection.</strong>
+                  At this rate, you have a thinner buffer against inflation,
+                  sudden medical bills, or naira volatility. We recommend staying at 15% or above.
+                </p>
+              </div>
+
+              <!-- Save buffer button -->
+              <div class="flex items-center justify-end mt-4">
+                <button class="btn-save" onclick="saveSettings('buffer')">
+                  Save Buffer Rate
+                </button>
+              </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="mb-6" style="height:1px;background:rgba(176,112,112,0.12);"></div>
+
+            <!-- Account Section -->
+            <div>
+              <p class="section-label mb-3" style="color:#B07070;">Account</p>
+
+              <!-- Export data row -->
+              <div
+                class="flex items-center justify-between rounded-sm px-4 py-3.5 mb-3"
+                style="background:#20242D;border:1px solid #2A2E38;"
+              >
+                <div>
+                  <p class="font-sans font-medium text-chalk" style="font-size:13px;">Export My Data</p>
+                  <p class="font-sans text-stone-dim font-light" style="font-size:11px;margin-top:2px;">
+                    Download a full CSV of your transactions and settings.
+                  </p>
+                </div>
+                <button
+                  onclick="saveSettings('export')"
+                  class="font-sans font-medium text-stone hover:text-chalk transition-colors duration-200 flex-shrink-0 ml-4"
+                  style="font-size:11.5px;background:none;border:none;cursor:pointer;letter-spacing:0.06em;text-decoration:underline;text-underline-offset:3px;"
+                >
+                  Export
+                </button>
+              </div>
+
+              <!-- Sign out row -->
+              <div
+                class="flex items-center justify-between rounded-sm px-4 py-3.5 mb-3"
+                style="background:#20242D;border:1px solid #2A2E38;"
+              >
+                <div>
+                  <p class="font-sans font-medium text-chalk" style="font-size:13px;">Sign Out</p>
+                  <p class="font-sans text-stone-dim font-light" style="font-size:11px;margin-top:2px;">
+                    Sign out of your account on this device.
+                  </p>
+                </div>
+                <button
+                  class="font-sans font-medium text-stone hover:text-chalk transition-colors duration-200 flex-shrink-0 ml-4"
+                  style="font-size:11.5px;background:none;border:none;cursor:pointer;letter-spacing:0.06em;text-decoration:underline;text-underline-offset:3px;"
+                >
+                  Sign Out
+                </button>
+              </div>
+
+              <!-- Delete account row -->
+              <div
+                class="flex items-center justify-between rounded-sm px-4 py-3.5"
+                style="background:rgba(176,112,112,0.04);border:1px solid rgba(176,112,112,0.18);"
+              >
+                <div>
+                  <p class="font-sans font-medium" style="font-size:13px;color:#B07070;">Delete Account</p>
+                  <p class="font-sans text-stone-dim font-light" style="font-size:11px;margin-top:2px;">
+                    Permanently erase all your data. This cannot be undone.
+                  </p>
+                </div>
+                <button
+                  onclick="confirmDeleteAccount()"
+                  class="flex-shrink-0 ml-4 font-sans font-semibold transition-colors duration-200"
+                  style="font-size:11.5px;color:#B07070;background:none;border:none;cursor:pointer;letter-spacing:0.06em;text-decoration:underline;text-underline-offset:3px;"
+                  onmouseover="this.style.color='#CC8888';"
+                  onmouseout="this.style.color='#B07070';"
+                >
+                  Delete
+                </button>
+              </div>
+
+            </div>
+            <!-- /Account section -->
+
+          </div>
+        </div>
+        <!-- /CARD 4 DANGER ZONE -->
+
+
+      </div>
+      <!-- /COLUMN 2 -->
+
+
+    </div>
+    <!-- /SETTINGS GRID -->
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="relative z-10 max-w-5xl mx-auto px-5 sm:px-7 pb-8">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-2 pt-5"
+         style="border-top:1px solid #1F2229;">
+      <p class="font-sans text-stone-dim font-light" style="font-size:10.5px;">
+        &copy; 2026 Guardrail Finance &middot; All rights reserved
+      </p>
+      <div class="flex items-center gap-4">
+        <a href="#" class="font-sans text-stone-dim hover:text-stone transition-colors duration-200" style="font-size:10.5px;">Privacy</a>
+        <a href="#" class="font-sans text-stone-dim hover:text-stone transition-colors duration-200" style="font-size:10.5px;">Terms</a>
+        <a href="#" class="font-sans text-stone-dim hover:text-stone transition-colors duration-200" style="font-size:10.5px;">Support</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast container (injected by JS) -->
+  <div id="toast-container"></div>
+
+  <!-- Delete confirm overlay -->
+  <div
+    id="delete-overlay"
+    class="hidden fixed inset-0 z-50 flex items-center justify-center p-4"
+    style="background:rgba(13,15,18,0.82);backdrop-filter:blur(6px);"
+  >
+    <div class="w-full max-w-sm rounded-md p-7" style="background:#1A1D24;border:1px solid rgba(176,112,112,0.30);box-shadow:0 24px 60px rgba(0,0,0,0.6);">
+      <div class="flex items-center gap-3 mb-4">
+        <svg style="width:18px;height:18px;flex-shrink:0;" fill="none" stroke="#B07070" stroke-width="1.8" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+        </svg>
+        <h3 class="font-serif text-chalk font-light" style="font-size:1.4rem;">Are you certain?</h3>
+      </div>
+      <p class="font-sans text-stone font-light leading-relaxed mb-6" style="font-size:13px;">
+        Deleting your account is <strong class="text-chalk font-medium">permanent and irreversible</strong>.
+        All your transaction history, vault balance, and settings will be erased immediately.
+        There is no recovery.
+      </p>
+      <div class="flex gap-3">
+        <button
+          onclick="closeDeleteOverlay()"
+          class="flex-1 font-sans font-semibold uppercase tracking-widest rounded-sm py-3 text-stone transition-all duration-200"
+          style="font-size:11px;letter-spacing:0.15em;background:transparent;border:1px solid #2A2E38;cursor:pointer;"
+          onmouseover="this.style.borderColor='#9A9A96';this.style.color='#F4F4F2';"
+          onmouseout="this.style.borderColor='#2A2E38';this.style.color='#9A9A96';"
+        >Cancel</button>
+        <button
+          onclick="closeDeleteOverlay()"
+          class="flex-1 font-sans font-semibold uppercase tracking-widest rounded-sm py-3 transition-all duration-200"
+          style="font-size:11px;letter-spacing:0.15em;background:rgba(176,112,112,0.14);color:#B07070;border:1px solid rgba(176,112,112,0.28);cursor:pointer;"
+          onmouseover="this.style.background='rgba(176,112,112,0.22)';"
+          onmouseout="this.style.background='rgba(176,112,112,0.14)';"
+        >Yes, Delete Everything</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       JAVASCRIPT
+       ──────────────────────────────────────────────────────
+       Responsibilities:
+         1. initObligations()   — seed default obligation rows
+         2. addObligation()     — inject a new editable row
+         3. removeObligation()  — animate-out and remove a row
+         4. refreshObligationTotals() — live ₦ calculation
+         5. lockVault()         — the weighted 3-phase lock UX
+         6. updateBufferPct()   — live slider value + warning
+         7. saveSettings()      — show success toast
+         8. showToast()         — utility toast system
+         9. confirmDeleteAccount() / closeDeleteOverlay()
+  ═══════════════════════════════════════════════════════ -->
+  <script>
+
+    /* ─────────────────────────────────────────────────────
+       SHARED STATE
+       These values feed the live calculations. In a real
+       Django app they would come from the server context.
+    ───────────────────────────────────────────────────── */
+
+    var MONTHLY_INCOME  = 350000;   // ₦ — synced with #income input
+    var BUFFER_RATE     = 0.15;     // 15% — synced with #buffer-pct slider
+    var oblRowCounter   = 0;        // unique ID for each obligation row
+    var vaultIsLocked   = false;    // tracks vault lock state
+
+    /* Default obligations to pre-populate */
+    var DEFAULT_OBLIGATIONS = [
+      { label: 'Rent / Accommodation',     amount: 120000 },
+      { label: 'Gen Fuel / Prepaid Meter', amount: 25000  },
+      { label: 'Internet Data',            amount: 15000  },
+      { label: 'Black Tax (Family Support)', amount: 35000 },
+    ];
+
+
+    /* ─────────────────────────────────────────────────────
+       FORMAT HELPERS
+    ───────────────────────────────────────────────────── */
+
+    /* Format a number as Nigerian locale string, 2 decimal places */
+    function fmtNaira(n) {
+      return Number(n).toLocaleString('en-NG', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    /* Safely escape HTML to prevent injection when using innerHTML */
+    function escHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+
+    /* ─────────────────────────────────────────────────────
+       1. INIT — seed default obligation rows on page load
+    ───────────────────────────────────────────────────── */
+    (function initObligations() {
+      DEFAULT_OBLIGATIONS.forEach(function(obl) {
+        addObligation(obl.label, obl.amount);
+      });
+    })();
+
+
+    /* ─────────────────────────────────────────────────────
+       2. ADD OBLIGATION ROW
+       Creates a new row with a label input, amount input,
+       and a remove button, then appends to #obl-list.
+    ───────────────────────────────────────────────────── */
+    function addObligation(labelVal, amountVal) {
+
+      oblRowCounter++;
+      var rowId = 'obl-row-' + oblRowCounter;
+
+      /* Build the row HTML — two inputs + remove button */
+      var html =
+        '<div id="' + rowId + '" class="obl-row flex items-center gap-2">'
+
+          /* Label input — wider flex */
+          + '<div class="flex-[2] min-w-0">'
+            + '<input '
+              + 'type="text" '
+              + 'class="g-input" '
+              + 'placeholder="Expense name" '
+              + 'value="' + escHtml(labelVal) + '" '
+              + 'autocomplete="off" '
+              + 'maxlength="50"'
+            + '/>'
+          + '</div>'
+
+          /* Amount input with ₦ prefix — narrower flex */
+          + '<div class="flex-1 min-w-0 naira-wrap">'
+            + '<span class="naira-sym" style="font-size:12.5px;">₦</span>'
+            + '<input '
+              + 'type="number" '
+              + 'class="g-input" '
+              + 'placeholder="0" '
+              + 'value="' + (amountVal || '') + '" '
+              + 'min="0" '
+              + 'oninput="refreshObligationTotals()"'
+            + '/>'
+          + '</div>'
+
+          /* Remove button */
+          + '<button '
+            + 'class="remove-btn" '
+            + 'onclick="removeObligation(\'' + rowId + '\')" '
+            + 'title="Remove obligation"'
+          + '>'
+            + '<svg style="width:9px;height:9px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">'
+              + '<line x1="18" y1="6" x2="6" y2="18"/>'
+              + '<line x1="6" y1="6" x2="18" y2="18"/>'
+            + '</svg>'
+          + '</button>'
+
+        + '</div>';
+
+      document.getElementById('obl-list').insertAdjacentHTML('beforeend', html);
+      refreshObligationTotals();
+    }
+
+
+    /* ─────────────────────────────────────────────────────
+       3. REMOVE OBLIGATION ROW
+       Animates the row out with a slide-and-fade, then
+       removes it from the DOM and recalculates totals.
+    ───────────────────────────────────────────────────── */
+    function removeObligation(rowId) {
+
+      var row = document.getElementById(rowId);
+      if (!row) return;
+
+      /* Apply exit animation class */
+      row.classList.add('obl-row-exiting');
+
+      /* After the 200ms CSS transition, remove from DOM */
+      setTimeout(function() {
+        row.remove();
+        refreshObligationTotals();
+      }, 220);
+    }
+
+
+    /* ─────────────────────────────────────────────────────
+       4. REFRESH OBLIGATION TOTALS
+       Sums all amount fields, updates the "Total Fixed"
+       strip and the "Discretionary Pool" calculation.
+    ───────────────────────────────────────────────────── */
+    function refreshObligationTotals() {
+
+      /* Sum every amount input inside #obl-list */
+      var totalFixed = 0;
+      var amountInputs = document.querySelectorAll('#obl-list .naira-wrap input[type=number]');
+      amountInputs.forEach(function(inp) {
+        var v = parseFloat(inp.value);
+        if (!isNaN(v) && v > 0) totalFixed += v;
+      });
+
+      /* Read income from the income input field */
+      var incomeVal = parseFloat(document.getElementById('income').value) || 0;
+
+      /* Calculate discretionary pool */
+      var discretionary = Math.max(0, incomeVal - totalFixed);
+
+      /* Update the two display strips */
+      document.getElementById('obl-total').textContent =
+        totalFixed > 0 ? '₦ ' + fmtNaira(totalFixed) : '₦ —';
+
+      document.getElementById('obl-discretionary').textContent =
+        '₦ ' + fmtNaira(discretionary);
+    }
+
+    /* Re-run totals whenever the income field changes */
+    document.getElementById('income').addEventListener('input', refreshObligationTotals);
+
+
+    /* ─────────────────────────────────────────────────────
+       5. LOCK VAULT
+       ──────────────────────────────────────────────────
+       This is the flagship interaction — it must feel
+       deliberate, weighty, and secure. Three phases:
+
+         Phase 1 (0ms):     Button enters loading state.
+                            Spinner appears. Button disabled.
+         Phase 2 (900ms):   Second loading message —
+                            "Encrypting vault parameters…"
+         Phase 3 (1900ms):  "Activating lock protocol…"
+         Phase 4 (3000ms):  Lock confirmed. Full UI update.
+                            - Button becomes permanently disabled
+                            - Amber badge appears
+                            - Countdown card appears
+                            - Card border turns amber
+                            - Features list hides
+                            - Lock icon swaps to closed padlock
+
+    ───────────────────────────────────────────────────── */
+    function lockVault() {
+
+      /* Prevent double-firing */
+      if (vaultIsLocked) return;
+
+      var btn         = document.getElementById('lock-btn');
+      var card        = document.getElementById('vault-lock-card');
+      var badge       = document.getElementById('locked-badge');
+      var countdown   = document.getElementById('locked-countdown');
+      var featureList = document.getElementById('lock-features-list');
+      var statusMini  = document.getElementById('vault-status-mini');
+      var iconLocked  = document.getElementById('icon-locked');
+      var iconUnlocked = document.getElementById('icon-unlocked');
+      var lockIconWrap = document.getElementById('lock-icon-wrap');
+      var moduleLabel  = document.getElementById('lock-module-label');
+      var moduleDesc   = document.getElementById('lock-module-desc');
+
+      /* ── PHASE 1: Loading begins ─────────────────────── */
+      btn.disabled    = true;
+      btn.innerHTML   = '<span class="spinner"></span>Verifying identity…';
+      btn.style.background = '#20242D';
+      btn.style.color      = '#666662';
+      btn.style.border     = '1px solid #2A2E38';
+      btn.style.cursor     = 'not-allowed';
+
+      /* ── PHASE 2: 900ms — second message ─────────────── */
+      setTimeout(function() {
+        btn.innerHTML = '<span class="spinner"></span>Encrypting vault parameters…';
+      }, 900);
+
+      /* ── PHASE 3: 1900ms — third message ─────────────── */
+      setTimeout(function() {
+        btn.innerHTML = '<span class="spinner"></span>Activating lock protocol…';
+      }, 1900);
+
+      /* ── PHASE 4: 3000ms — lock confirmed ────────────── */
+      setTimeout(function() {
+
+        /* Mark vault as locked in our state variable */
+        vaultIsLocked = true;
+
+        /* 1. Update button to permanently disabled "Vault Locked" state */
+        btn.innerHTML = '🔒 Vault Locked until 28 May';
+        btn.disabled  = true;
+        /* Button styles remain disabled-grey — set by :disabled CSS */
+
+        /* 2. Swap shimmer border colour from sage to amber */
+        card.classList.add('is-locked');
+
+        /* 3. Swap lock icon from open to closed */
+        iconUnlocked.style.display = 'none';
+        iconLocked.style.display   = 'block';
+
+        /* 4. Change lock icon wrap from sage to amber */
+        lockIconWrap.style.background   = 'rgba(201,169,110,0.10)';
+        lockIconWrap.style.borderColor  = 'rgba(201,169,110,0.22)';
+
+        /* 5. Update the module label colour */
+        moduleLabel.style.color = '#C9A96E';
+        moduleLabel.textContent = 'Vault Lock — Active';
+
+        /* 6. Update module description */
+        moduleDesc.textContent =
+          'Your vault is now locked. No withdrawals are possible until 28 May 2026. '
+          + 'This action cannot be reversed — by design.';
+        moduleDesc.style.color = '#9A9A96';
+
+        /* 7. Hide the features list (no longer relevant) */
+        featureList.style.transition = 'opacity 0.30s ease';
+        featureList.style.opacity    = '0';
+        setTimeout(function() { featureList.style.display = 'none'; }, 310);
+
+        /* 8. Show amber warning badge */
+        badge.classList.remove('hidden');
+        badge.style.opacity    = '0';
+        badge.style.transition = 'opacity 0.35s ease';
+        setTimeout(function() { badge.style.opacity = '1'; }, 20);
+
+        /* 9. Show countdown display */
+        countdown.classList.remove('hidden');
+        countdown.style.opacity    = '0';
+        countdown.style.transition = 'opacity 0.35s ease 0.10s';
+        setTimeout(function() { countdown.style.opacity = '1'; }, 20);
+
+        /* 10. Update the mini status pill at the top of the vault card */
+        statusMini.textContent = 'Locked';
+        statusMini.style.color = '#C9A96E';
+
+        /* 11. Show a weighted success toast */
+        showToast('Vault locked until 28 May 2026. Self-sabotage eliminated.', 'amber', 4500);
+
+      }, 3000);
+    }
+
+
+    /* ─────────────────────────────────────────────────────
+       6. BUFFER PERCENTAGE SLIDER
+       Updates the live percentage display and shows/hides
+       the warning callout when below the safe threshold.
+    ───────────────────────────────────────────────────── */
+    function updateBufferPct(value) {
+
+      var pct = parseInt(value, 10);
+
+      /* Update the display readout next to the slider */
+      document.getElementById('buffer-pct-display').textContent = pct + '%';
+
+      /* Also update the vault card header stat */
+      document.getElementById('buffer-rate-display').textContent = pct + '%';
+
+      /* Show the warning callout if below 15% (the recommended minimum) */
+      var warning = document.getElementById('buffer-warning');
+      if (pct < 15) {
+        warning.classList.remove('hidden');
+      } else {
+        warning.classList.add('hidden');
+      }
+
+      /* Update shared state */
+      BUFFER_RATE = pct / 100;
+    }
+
+
+    /* ─────────────────────────────────────────────────────
+       7. SAVE SETTINGS — shows a context-aware toast
+       In a real Django app, this would POST to a view.
+    ───────────────────────────────────────────────────── */
+    function saveSettings(context) {
+
+      /* Context-aware success messages */
+      var messages = {
+        'income-cycle': 'Income & cycle saved. Daily limit recalculated.',
+        'obligations':  'Fixed obligations updated. Discretionary pool refreshed.',
+        'buffer':       'Buffer rate saved. Vault will adjust next cycle.',
+        'export':       'Export queued. Check your email in a few minutes.',
+      };
+
+      var msg = messages[context] || 'Settings saved successfully.';
+      showToast(msg, 'sage', 3200);
+    }
+
+
+    /* ─────────────────────────────────────────────────────
+       8. TOAST NOTIFICATION SYSTEM
+       ─────────────────────────────────────────────────
+       Creates a toast div, appends it to #toast-container,
+       then removes it after (duration)ms.
+
+       colour: 'sage' | 'amber'
+    ───────────────────────────────────────────────────── */
+    function showToast(message, colour, duration) {
+
+      colour   = colour   || 'sage';
+      duration = duration || 3000;
+
+      var borderColor = colour === 'amber'
+        ? 'rgba(201,169,110,0.35)'
+        : 'rgba(143,168,155,0.30)';
+
+      var textColor = colour === 'amber' ? '#C9A96E' : '#8FA89B';
+
+      /* Icon SVG — checkmark for sage, lock for amber */
+      var iconSvg = colour === 'amber'
+        ? '<svg style="width:13px;height:13px;flex-shrink:0;" fill="none" stroke="#C9A96E" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>'
+        : '<svg style="width:13px;height:13px;flex-shrink:0;" fill="none" stroke="#8FA89B" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
+
+      /* Build the toast element */
+      var toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.style.borderColor = borderColor;
+      toast.style.color       = textColor;
+      toast.innerHTML = iconSvg + '<span>' + escHtml(message) + '</span>';
+
+      document.getElementById('toast-container').appendChild(toast);
+
+      /* After (duration - 350)ms, trigger fade-out animation */
+      setTimeout(function() {
+        toast.classList.add('hiding');
+        /* Remove from DOM after the 300ms fade completes */
+        setTimeout(function() { toast.remove(); }, 320);
+      }, duration - 350);
+    }
+
+
+    /* ─────────────────────────────────────────────────────
+       9. DELETE ACCOUNT OVERLAY
+    ───────────────────────────────────────────────────── */
+    function confirmDeleteAccount() {
+      document.getElementById('delete-overlay').classList.remove('hidden');
+    }
+
+    function closeDeleteOverlay() {
+      document.getElementById('delete-overlay').classList.add('hidden');
+    }
+
+    /* Close overlay on Escape key */
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeDeleteOverlay();
+    });
+
+  </script>
+
+</body>
+</html>
