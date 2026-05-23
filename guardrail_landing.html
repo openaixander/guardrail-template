@@ -5,12 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Guardrail — Know Exactly What You Can Spend</title>
 
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-  <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -161,13 +159,9 @@
 
 <body class="relative">
 
-  <!-- ═══════════════════════════════════════════════════════
-       SECTION 0 — STICKY NAVIGATION
-  ═══════════════════════════════════════════════════════ -->
   <header class="nav-glass fixed top-0 left-0 right-0 z-50">
     <div class="max-w-6xl mx-auto px-5 sm:px-8 h-14 sm:h-16 flex items-center justify-between">
 
-      <!-- Wordmark -->
       <a href="#" class="flex items-center gap-2.5 group">
         <span class="inline-block w-1.5 h-1.5 rounded-full bg-sage group-hover:scale-125 transition-transform duration-300"></span>
         <span class="serif text-chalk font-light tracking-wide text-lg sm:text-xl leading-none select-none">
@@ -175,13 +169,11 @@
         </span>
       </a>
 
-      <!-- Right-side nav -->
       <nav class="hidden sm:flex items-center gap-8 text-stone text-[13px] font-medium tracking-wide">
         <a href="#how-it-works" class="hover:text-chalk-dim transition-colors duration-200">How it works</a>
         <a href="#pricing" class="hover:text-chalk-dim transition-colors duration-200">Pricing</a>
       </nav>
 
-      <!-- CTA button -->
       <a href="#get-started"
          class="sans text-[13px] font-medium text-chalk border border-line hover:border-sage hover:text-sage px-4 py-2 sm:px-5 sm:py-2.5 rounded-sm transition-all duration-300 tracking-wide">
         Sign In &amp; Start Saving
@@ -190,12 +182,8 @@
   </header>
 
 
-  <!-- ═══════════════════════════════════════════════════════
-       SECTION 1 — HERO / PHILOSOPHY
-  ═══════════════════════════════════════════════════════ -->
   <section class="relative min-h-screen flex flex-col items-center justify-center text-center px-5 sm:px-8 pt-28 pb-20 md:pt-36 md:pb-28">
 
-    <!-- Subtle radial ambient behind hero -->
     <div class="pointer-events-none absolute inset-0 overflow-hidden">
       <div class="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full"
            style="background: radial-gradient(circle, rgba(143,168,155,0.055) 0%, transparent 70%);"></div>
@@ -203,7 +191,6 @@
 
     <div class="relative z-10 max-w-4xl mx-auto">
 
-      <!-- Eyebrow label -->
       <div class="reveal flex items-center justify-center gap-3 mb-8 sm:mb-10">
         <span class="block h-px w-8 bg-sage-dim opacity-60"></span>
         <span class="sans text-[11px] text-sage tracking-widest2 uppercase font-medium">
@@ -212,7 +199,6 @@
         <span class="block h-px w-8 bg-sage-dim opacity-60"></span>
       </div>
 
-      <!-- Primary headline -->
       <h1 class="reveal reveal-delay-1 serif font-light text-chalk leading-[1.08] tracking-tight
                  text-4xl sm:text-5xl md:text-6xl lg:text-7xl
                  mb-6 sm:mb-8">
@@ -221,7 +207,6 @@
         can spend right now.
       </h1>
 
-      <!-- Sub-headline -->
       <p class="reveal reveal-delay-2 sans text-stone font-light leading-relaxed max-w-xl mx-auto
                 text-base sm:text-lg mb-14 sm:mb-16">
         A real-time daily constraint engine that conceals an automatic inflation
@@ -229,14 +214,11 @@
         No spreadsheets. No shame. Just clarity.
       </p>
 
-      <!-- ── DASHBOARD MOCKUP ──────────────────────────── -->
       <div class="reveal reveal-delay-3 w-full max-w-2xl mx-auto">
 
-        <!-- Outer shell -->
         <div class="relative rounded-lg overflow-hidden border border-line shadow-2xl"
              style="box-shadow: 0 32px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(143,168,155,0.07);">
 
-          <!-- Fake browser chrome bar -->
           <div class="bg-bg-raised border-b border-line px-4 py-2.5 flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-[#FF5F57] opacity-70"></span>
             <span class="w-2.5 h-2.5 rounded-full bg-[#FFBD2E] opacity-70"></span>
@@ -246,10 +228,8 @@
             </div>
           </div>
 
-          <!-- Dashboard body -->
           <div class="dashboard-grid bg-bg-surface px-6 py-10 sm:px-10 sm:py-14">
 
-            <!-- Date pill -->
             <div class="flex items-center justify-between mb-10 sm:mb-12">
               <div class="flex items-center gap-2">
                 <span class="inline-block w-1.5 h-1.5 rounded-full bg-sage animate-pulse"></span>
@@ -258,7 +238,6 @@
               <span class="sans text-[11px] text-stone-dim">May 20, 2026</span>
             </div>
 
-            <!-- The one number -->
             <div class="text-center mb-10 sm:mb-12">
               <p class="sans text-[11px] text-stone tracking-widest2 uppercase mb-4">Your Safe-to-Spend Limit Today</p>
               <p class="serif font-light leading-none text-sage-glow sage-breathe
@@ -268,11 +247,10 @@
               <p class="sans text-[12px] text-stone-dim mt-3 tracking-wide">11 days remaining in cycle</p>
             </div>
 
-            <!-- Mini stats row -->
             <div class="grid grid-cols-3 gap-3 sm:gap-4 border-t border-line pt-6 sm:pt-8">
               <div class="text-center">
                 <p class="sans text-[10px] text-stone-dim tracking-widest uppercase mb-1.5">Buffer Held</p>
-                <p class="sans font-medium text-stone text-sm sm:text-base">₦94.20</p>
+                <p class="sans font-medium text-stone text-sm sm:text-base">₦67,500</p>
               </div>
               <div class="text-center border-x border-line">
                 <p class="sans text-[10px] text-stone-dim tracking-widest uppercase mb-1.5">Monthly Income</p>
@@ -287,25 +265,18 @@
           </div>
         </div>
 
-        <!-- Mockup caption -->
         <p class="sans text-[11px] text-stone-dim mt-4 tracking-wide">
           One number. No noise. Updated every midnight.
         </p>
       </div>
-      <!-- ── END DASHBOARD MOCKUP ─────────────────────── -->
-
-    </div>
+      </div>
   </section>
 
 
-  <!-- ═══════════════════════════════════════════════════════
-       SECTION 2 — THE 3-STEP GUARDRAIL MECHANISM
-  ═══════════════════════════════════════════════════════ -->
   <section id="how-it-works" class="relative py-20 md:py-32 px-5 sm:px-8">
 
     <div class="max-w-6xl mx-auto">
 
-      <!-- Section header -->
       <div class="reveal text-center max-w-xl mx-auto mb-16 sm:mb-20">
         <span class="sans text-[11px] text-sage tracking-widest2 uppercase font-medium">The Mechanism</span>
         <h2 class="serif font-light text-chalk mt-3 text-3xl sm:text-4xl md:text-5xl leading-tight tracking-tight">
@@ -313,10 +284,8 @@
         </h2>
       </div>
 
-      <!-- Steps grid -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-0 md:gap-px bg-transparent md:bg-line">
 
-        <!-- Step 1 -->
         <div class="reveal bg-bg-base md:bg-bg-base py-10 sm:py-12 px-8 sm:px-10 border-b border-line md:border-b-0 md:border-line">
           <div class="flex items-start gap-5 md:block">
             <div class="flex-shrink-0">
@@ -338,7 +307,6 @@
           </div>
         </div>
 
-        <!-- Step 2 -->
         <div class="reveal reveal-delay-1 bg-bg-base md:bg-bg-base py-10 sm:py-12 px-8 sm:px-10 border-b border-line md:border-b-0 md:border-line">
           <div class="flex items-start gap-5 md:block">
             <div class="flex-shrink-0">
@@ -362,7 +330,6 @@
           </div>
         </div>
 
-        <!-- Step 3 -->
         <div class="reveal reveal-delay-2 bg-bg-base md:bg-bg-base py-10 sm:py-12 px-8 sm:px-10">
           <div class="flex items-start gap-5 md:block">
             <div class="flex-shrink-0">
@@ -386,7 +353,6 @@
 
       </div>
 
-      <!-- Divider formula -->
       <div class="reveal reveal-delay-3 mt-14 sm:mt-16 border border-line rounded-sm px-6 py-5 sm:px-10 sm:py-6 bg-bg-surface max-w-3xl mx-auto">
         <p class="sans text-[11px] text-stone-dim tracking-widest uppercase mb-3 text-center">The Formula</p>
         <div class="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-0 text-center flex-wrap">
@@ -406,57 +372,49 @@
   </section>
 
 
-  <!-- ═══════════════════════════════════════════════════════
-       SECTION 3 — IMPULSE EVALUATOR (INTERACTIVE MOCKUP)
-  ═══════════════════════════════════════════════════════ -->
   <section class="relative py-20 md:py-32 px-5 sm:px-8 border-t border-line">
 
     <div class="max-w-5xl mx-auto">
 
-      <!-- Section header -->
       <div class="reveal text-center max-w-xl mx-auto mb-14 sm:mb-16">
         <span class="sans text-[11px] text-sage tracking-widest2 uppercase font-medium">Impulse Evaluator</span>
         <h2 class="serif font-light text-chalk mt-3 text-3xl sm:text-4xl md:text-5xl leading-tight tracking-tight">
           What does that purchase<br /><em class="italic text-chalk-dim">actually</em> cost you?
         </h2>
         <p class="sans text-stone text-sm mt-4 leading-relaxed font-light max-w-md mx-auto">
-          Not in dollars — in days of your financial life. Enter any amount below and Guardrail translates it into something real.
+          Not in money — in days of your financial life. Enter any amount below and Guardrail translates it into something real.
         </p>
       </div>
 
-      <!-- Interactive card -->
       <div class="reveal reveal-delay-1">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-px bg-line rounded-sm overflow-hidden border border-line"
              style="box-shadow: 0 20px 60px rgba(0,0,0,0.4);">
 
-          <!-- Left panel — INPUT -->
           <div class="bg-bg-surface p-7 sm:p-10">
             <p class="sans text-[11px] text-stone-dim tracking-widest uppercase mb-7">Hypothetical Purchase</p>
 
-            <!-- Item name input -->
             <div class="mb-5">
               <label class="sans text-[11px] text-stone tracking-wide uppercase block mb-2">Item Name</label>
               <input
                 type="text"
                 id="eval-item"
-                value="Italian Leather Jacket"
+                value="Asake VIP Ticket"
                 class="w-full bg-bg-raised border border-line rounded-sm px-4 py-3
                        sans text-chalk text-sm placeholder-stone-dim
                        focus:border-sage focus:border-opacity-50 transition-colors duration-200"
               />
             </div>
 
-            <!-- Price input -->
             <div class="mb-8">
               <label class="sans text-[11px] text-stone tracking-wide uppercase block mb-2">Purchase Price</label>
               <div class="relative">
-                <span class="absolute left-4 top-1/2 -translate-y-1/2 sans text-stone text-sm">$</span>
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 sans text-stone text-sm">₦</span>
                 <input
                   type="number"
                   id="eval-price"
-                  value="180"
+                  value="85000"
                   min="1"
-                  max="99999"
+                  max="999999"
                   class="w-full bg-bg-raised border border-line rounded-sm pl-8 pr-4 py-3
                          sans text-chalk text-sm placeholder-stone-dim
                          focus:border-sage focus:border-opacity-50 transition-colors duration-200"
@@ -464,7 +422,6 @@
               </div>
             </div>
 
-            <!-- Evaluate button -->
             <button
               id="eval-btn"
               onclick="runEvaluation()"
@@ -476,11 +433,10 @@
               Evaluate Purchase
             </button>
 
-            <!-- Context values (read-only display) -->
             <div class="mt-8 pt-6 border-t border-line grid grid-cols-2 gap-4">
               <div>
                 <p class="sans text-[10px] text-stone-dim uppercase tracking-widest mb-1">Daily Limit</p>
-                <p class="sans text-chalk font-medium text-base" id="ctx-limit">$42.50</p>
+                <p class="sans text-chalk font-medium text-base" id="ctx-limit">₦12,500</p>
               </div>
               <div>
                 <p class="sans text-[10px] text-stone-dim uppercase tracking-widest mb-1">Days Left</p>
@@ -489,46 +445,40 @@
             </div>
           </div>
 
-          <!-- Right panel — RESPONSE -->
           <div class="bg-bg-raised p-7 sm:p-10 flex flex-col justify-between">
 
             <div>
               <p class="sans text-[11px] text-stone-dim tracking-widest uppercase mb-7">Guardrail's Assessment</p>
 
-              <!-- Response block (dynamic) -->
               <div id="eval-response" class="opacity-100">
 
-                <!-- Friction score -->
                 <div class="mb-7">
                   <p class="sans text-[11px] text-stone tracking-wide uppercase mb-3">Cost in Time</p>
                   <p class="serif font-light leading-snug" style="font-size: clamp(2rem, 5vw, 3.2rem);">
-                    <span id="resp-days" class="text-amber-soft">4 days</span>
+                    <span id="resp-days" class="text-amber-soft">6 days</span>
                     <span class="text-stone text-2xl sm:text-3xl"> of your<br/>financial life.</span>
                   </p>
                 </div>
 
-                <!-- Impact statement -->
                 <div class="border-l-2 border-amber-dim border-opacity-40 pl-5 mb-7">
                   <p class="sans text-stone text-sm leading-relaxed font-light" id="resp-impact">
                     If you buy this today, your daily limit drops to
-                    <strong class="text-amber-soft font-medium" id="resp-new-limit">$14.00</strong>
+                    <strong class="text-amber-soft font-medium" id="resp-new-limit">₦5,250.00</strong>
                     for the remaining <span id="resp-remaining">10</span> days of the month.
                   </p>
                 </div>
 
-                <!-- Psychological nudge -->
                 <div class="bg-bg-surface border border-line rounded-sm px-5 py-4">
                   <p class="sans text-[11px] text-stone-dim uppercase tracking-widest mb-2">Perspective</p>
                   <p class="sans text-stone text-[13px] leading-relaxed font-light" id="resp-nudge">
-                    That is 4 consecutive days where every meal, every commute,
-                    and every small comfort is already spoken for — by a jacket.
+                    That is 6 consecutive days where every meal, every commute,
+                    and every small comfort is already spoken for — by asake vip ticket.
                   </p>
                 </div>
 
               </div>
             </div>
 
-            <!-- Subtle badge -->
             <div class="mt-8 flex items-center gap-2.5">
               <span class="inline-block w-1 h-1 rounded-full bg-amber-dim opacity-60"></span>
               <p class="sans text-[11px] text-stone-dim tracking-wide">Behavioral friction is a feature, not a bug.</p>
@@ -541,14 +491,10 @@
   </section>
 
 
-  <!-- ═══════════════════════════════════════════════════════
-       SECTION 4 — PRICING
-  ═══════════════════════════════════════════════════════ -->
   <section id="pricing" class="relative py-20 md:py-32 px-5 sm:px-8 border-t border-line">
 
     <div class="max-w-5xl mx-auto">
 
-      <!-- Section header -->
       <div class="reveal text-center max-w-xl mx-auto mb-14 sm:mb-16">
         <span class="sans text-[11px] text-sage tracking-widest2 uppercase font-medium">Pricing</span>
         <h2 class="serif font-light text-chalk mt-3 text-3xl sm:text-4xl md:text-5xl leading-tight tracking-tight">
@@ -556,10 +502,8 @@
         </h2>
       </div>
 
-      <!-- Pricing grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 max-w-3xl mx-auto">
 
-        <!-- ── Tier 1: Core (Pay What You Want) ────────── -->
         <div class="reveal bg-bg-surface border border-line rounded-sm p-8 sm:p-10">
           <div class="flex items-start justify-between mb-6">
             <div>
@@ -607,7 +551,6 @@
           </a>
         </div>
 
-        <!-- ── Tier 2: Premium (Vault Lock) ───────────── -->
         <div class="reveal reveal-delay-1 pricing-border">
           <div class="pricing-inner p-8 sm:p-10 h-full flex flex-col">
 
@@ -631,7 +574,6 @@
                 the rationalizations that erode financial discipline.
               </p>
 
-              <!-- The key benefit callout -->
               <div class="bg-bg-raised border border-sage border-opacity-20 rounded-sm px-5 py-4 mb-5">
                 <p class="sans text-[11px] text-sage tracking-widest uppercase mb-2">The Vault Lock Advantage</p>
                 <p class="sans text-stone text-[13px] font-light leading-relaxed">
@@ -661,7 +603,6 @@
               </ul>
             </div>
 
-            <!-- Price note -->
             <div class="mb-5">
               <p class="sans text-stone-dim text-[12px] font-light">
                 A small monthly contribution — or a one-time annual payment. You set the amount
@@ -680,7 +621,6 @@
 
       </div>
 
-      <!-- Footnote -->
       <p class="reveal reveal-delay-2 text-center sans text-[12px] text-stone-dim mt-8 font-light">
         No credit card required to start. No feature unlocking timers. No dark patterns.
       </p>
@@ -689,12 +629,8 @@
   </section>
 
 
-  <!-- ═══════════════════════════════════════════════════════
-       SECTION 5 — FINAL CTA / FOOTER
-  ═══════════════════════════════════════════════════════ -->
   <section id="get-started" class="relative py-24 md:py-36 px-5 sm:px-8 border-t border-line">
 
-    <!-- Ambient glow -->
     <div class="pointer-events-none absolute inset-0 overflow-hidden">
       <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[500px] h-[300px]"
            style="background: radial-gradient(ellipse, rgba(143,168,155,0.05) 0%, transparent 70%);"></div>
@@ -713,7 +649,6 @@
         </p>
       </div>
 
-      <!-- Email form -->
       <div class="reveal reveal-delay-1">
         <form id="cta-form" onsubmit="handleCTASubmit(event)"
               class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 max-w-md mx-auto mb-5">
@@ -745,20 +680,15 @@
   </section>
 
 
-  <!-- ═══════════════════════════════════════════════════════
-       FOOTER
-  ═══════════════════════════════════════════════════════ -->
   <footer class="border-t border-line px-5 sm:px-8 py-10">
     <div class="max-w-6xl mx-auto">
       <div class="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6 mb-8">
 
-        <!-- Brand -->
         <div class="flex items-center gap-2">
           <span class="inline-block w-1.5 h-1.5 rounded-full bg-sage opacity-60"></span>
           <span class="serif text-stone font-light text-base tracking-wide">guardrail</span>
         </div>
 
-        <!-- Footer links -->
         <nav class="flex flex-wrap items-center justify-center gap-5 sm:gap-8">
           <a href="#" class="sans text-[12px] text-stone-dim hover:text-stone transition-colors duration-200 tracking-wide">Privacy Policy</a>
           <a href="#" class="sans text-[12px] text-stone-dim hover:text-stone transition-colors duration-200 tracking-wide">Terms of Use</a>
@@ -769,7 +699,6 @@
 
       </div>
 
-      <!-- Bottom strip -->
       <div class="border-t border-line pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
         <p class="sans text-[11px] text-stone-dim font-light">
           &copy; 2026 Guardrail Finance, Inc. All rights reserved.
@@ -783,9 +712,6 @@
   </footer>
 
 
-  <!-- ═══════════════════════════════════════════════════════
-       JAVASCRIPT
-  ═══════════════════════════════════════════════════════ -->
   <script>
     /* ── Scroll-reveal observer ─────────────────────────── */
     const revealObserver = new IntersectionObserver((entries) => {
@@ -801,7 +727,7 @@
 
 
     /* ── Impulse Evaluator logic ────────────────────────── */
-    const DAILY_LIMIT = 42.50;
+    const DAILY_LIMIT = 12500;
     const DAYS_LEFT   = 11;
 
     function runEvaluation() {
@@ -817,10 +743,10 @@
         : '0.00';
 
       const nudges = [
-        `That is ₦{Math.floor(daysConsumed)} consecutive ${Math.floor(daysConsumed) === 1 ? 'day' : 'days'} where every meal, every commute, and every small comfort is already spoken for — by ${item.toLowerCase()}.`,
+        `That is ${Math.floor(daysConsumed)} consecutive ${Math.floor(daysConsumed) === 1 ? 'day' : 'days'} where every meal, every commute, and every small comfort is already spoken for — by ${item.toLowerCase()}.`,
         `Think of it this way: you'd be borrowing ${daysConsumed} ${daysConsumed === 1 ? 'day' : 'days'} from your future self to own something today.`,
         `Your remaining ${totalRemaining} days would operate on a razor-thin margin. Is ${item} worth that trade-off?`,
-        `Each day after this purchase, you'd have ₦{newDailyLimit} — less than the cost of a modest lunch and transit in most cities.`,
+        `Each day after this purchase, you'd have ₦${newDailyLimit} — less than the cost of a modest lunch and transit in most cities.`,
       ];
 
       const nudge = nudges[Math.floor(Math.random() * nudges.length)];
@@ -831,7 +757,7 @@
 
       setTimeout(() => {
         document.getElementById('resp-days').textContent      = `${daysConsumed} ${daysConsumed === 1 ? 'day' : 'days'}`;
-        document.getElementById('resp-new-limit').textContent = `$${newDailyLimit}`;
+        document.getElementById('resp-new-limit').textContent = `₦${newDailyLimit}`;
         document.getElementById('resp-remaining').textContent = totalRemaining;
         document.getElementById('resp-nudge').textContent     = nudge;
 
